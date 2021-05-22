@@ -217,11 +217,11 @@ int main()
 
 		glUseProgram(shaderProgram);
 
-		float timeValue = glfwGetTime();
-		float greenValue = (sinf(timeValue) + 1.0f) * 0.5f;
-		printf("%f\r",greenValue);
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		//float timeValue = glfwGetTime();
+		//float greenValue = (sinf(timeValue) + 1.0f) * 0.5f;
+		//printf("%f\r",greenValue);
+		//int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+		//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
