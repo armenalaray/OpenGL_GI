@@ -2,7 +2,15 @@
 #include "GLFW/glfw3.h"
 #include <iostream>
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#include "Shader.h"
 /*
 GLSL useful features specifically targeted at vector and matrix manipulation.
 vertex shader -> input is called vertex attribute
@@ -18,10 +26,18 @@ shader data types:
 
 index
 so we recieve a vertex per vertex shader program thread!!!!
+
+por eso es que se escala desde el vertex shader y no del fragment!!!
+Para que la interpolación sea correcta!!!
 */
 
 /*
 So you could generate more VAO's as needed in one call!!
+
+OPenGL
+
+OpenGL should have at least 16 texture units for you to use which you can activate using GL_TEXTURE0 to GL_TEXTURE15. 
+We can use GL_TEXTURE0 + 8 for example.
 
 */
 
@@ -39,11 +55,23 @@ void process_input(GLFWwindow* window)
 
 int main()
 {
+
+	//glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+	////NOTE: initializaes identity matrix 4
+	//glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+	//vec = trans * vec;
+	//std::cout << vec.x << " " << vec.y << " " << vec.z << " " << vec.w << " " << std::endl;
+
+	//glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0, 0, 1));
+	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
 	//const char* vertexShaderSource = "#version 330 core\nlayout (location=0) in vec3 aPos;\nvoid main(){\ngl_Position=vec4(aPos.x,aPos.y,aPos.z,1.0);}\n\0";
 	//const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nvoid main(){\nFragColor=vec4(1.0f,0.5f,0.2f,1.0f);}\n\0";
 
-	const char* vertexShaderSource = "#version 330 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColor;\nout vec3 ourColor;\nvoid main(){\ngl_Position=vec4(aPos,1.0);\nourColor=aColor;}\n\0";
-	const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nin vec3 ourColor;\nvoid main(){\nFragColor=vec4(ourColor,1.0);}\n\0";
+	//const char* vertexShaderSource = "#version 330 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColor;\nout vec3 ourColor;\nvoid main(){\ngl_Position=vec4(aPos,1.0);\nourColor=aColor;}\n\0";
+	//const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nin vec3 ourColor;\nvoid main(){\nFragColor=vec4(ourColor,1.0);}\n\0";
 
 	//const char* vertexShaderSource = "#version 330 core\nlayout (location=0) in vec3 aPos;\nvoid main(){\ngl_Position=vec4(aPos.x,aPos.y,aPos.z,1.0);}\n\0";
 	//const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nuniform vec4 ourColor;\nvoid main(){\nFragColor=ourColor;}\n\0";
@@ -74,73 +102,7 @@ int main()
 	*/
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-
-	//VERTEX SHADER
-
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	int verSuccess;
-	char verInfoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &verSuccess);
-	if (!verSuccess)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, verInfoLog);
-		std::cout << "ERROR::VERTEX_SHADER_OBJECT::COMPILATION_FAILED\n" << verInfoLog << std::endl;
-	}
-	else
-	{
-		std::cout << "VERTEX_SHADER_OBJECT::COMPILATION_SUCCESS\n";
-	}
-
-
-	//FRAGMENT SHADER
-
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	int fragSuccess;
-	char fragInfoLog[512];
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragSuccess);
-	if (!fragSuccess)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, fragInfoLog);
-		std::cout << "ERROR::FRAGMENT_SHADER_OBJECT::COMPILATION_FAILED\n" << fragInfoLog << std::endl;
-	}
-	else
-	{
-		std::cout << "FRAGMENT_SHADER_OBJECT::COMPILATION_SUCCESS\n";
-	}
-
-
-	//SHADER PROGRAM
-
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	int shaderProgramSuccess;
-	char shaderProgramInfoLog[512];
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &shaderProgramSuccess);
-
-	if (!shaderProgramSuccess)
-	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, shaderProgramInfoLog);
-		std::cout << "ERROR::SHADER_PROGRAM::LINKING_FAILED\n" << shaderProgramInfoLog << std::endl;
-	}
-	else
-	{
-		std::cout << "SHADER_PROGRAM::LINKING_SUCCESS\n";
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	Shader ps("shader.vert", "shader.frag");
 
 	//Object Generation
 
@@ -161,10 +123,10 @@ int main()
 	*/
 	
 	float vertices[] = {
-		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,   //top-right
+		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, -1.0f,  //bottom-right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, //bottom-left
+		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 2.0f   //top-left
 	};
 
 	unsigned int indices[] = {
@@ -201,13 +163,84 @@ int main()
 	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	//glEnableVertexAttribArray(0);
 
-	//position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	//vertex position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	//color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	//vertex color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
 	glEnableVertexAttribArray(1);
+	//texture coordinates attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
+	//Texture object generation
+
+	unsigned int texture0ID;
+	glGenTextures(1, &texture0ID);
+	glBindTexture(GL_TEXTURE_2D, texture0ID);
+
+	//set the texture wrapping/filtering options (on the currently bound texxture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	{
+		stbi_set_flip_vertically_on_load(true);
+		int width, height, chaCount;
+		//TODO: Check how we are receiving the data!!!
+		unsigned char* data = stbi_load("Source\\Textures\\pelican.jpg", &width, &height, &chaCount, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+		}
+		else
+		{
+			std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+		}
+		stbi_image_free(data);
+	}
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//Texture object generation
+
+	unsigned int texture1ID;
+	glGenTextures(1, &texture1ID);
+	glBindTexture(GL_TEXTURE_2D, texture1ID);
+
+	//set the texture wrapping/filtering options (on the currently bound texxture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	{
+		stbi_set_flip_vertically_on_load(true);
+		int width, height, chaCount;
+		//TODO: Check how we are receiving the data!!!
+		unsigned char* data = stbi_load("Source\\Textures\\face.png", &width, &height, &chaCount, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+		}
+		else
+		{
+			std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+		}
+		stbi_image_free(data);
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	ps.Use();
+	ps.SetVar("texture0", 0);
+	ps.SetVar("texture1", 1);
+
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		process_input(window);
@@ -215,18 +248,29 @@ int main()
 		glClearColor(0.3f, 0.2f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(shaderProgram);
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0, 0, 1));
+		trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0, 0, 1));
 
-		//float timeValue = glfwGetTime();
+		unsigned int transformLoc = glGetUniformLocation(ps.GetID(), "trans");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+
+		//float timeValue = (float)glfwGetTime();
 		//float greenValue = (sinf(timeValue) + 1.0f) * 0.5f;
 		//printf("%f\r",greenValue);
-		//int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		//ps.SetVar("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture0ID);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture1ID);
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
