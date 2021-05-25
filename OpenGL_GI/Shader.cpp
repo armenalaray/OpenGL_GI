@@ -101,33 +101,39 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath)
 
 }
 
-void Shader::Use()
+void Shader::use()
 {
 	glUseProgram(programID);
 }
 
-void Shader::SetVar(const char* varName, bool value)
+void Shader::setVar(const char* varName, bool value)
 {
 	int location = glGetUniformLocation(programID, varName);
 	glUniform1i(location, value);
 }
 
-void Shader::SetVar(const char* varName, int value)
+void Shader::setVar(const char* varName, int value)
 {
 	int location = glGetUniformLocation(programID, varName);
 	glUniform1i(location, value);
 }
 
-void Shader::SetVar(const char* varName, float value)
+void Shader::setVar(const char* varName, float value)
 {
 	int location = glGetUniformLocation(programID, varName);
 	glUniform1f(location, value);
 }
 
-void Shader::SetVar(const char* varName, float v0, float v1, float v2, float v3)
+void Shader::setVar(const char* varName, glm::vec3 v0)
 {
 	int location = glGetUniformLocation(programID, varName);
-	glUniform4f(location, v0,v1,v2,v3);
+	glUniform3f(location, v0.x, v0.y, v0.z);
+}
+
+void Shader::setVar(const char* varName, glm::vec4 v0)
+{
+	int location = glGetUniformLocation(programID, varName);
+	glUniform4f(location, v0.x, v0.y, v0.z, v0.w);
 }
 
 unsigned int Shader::GetID()

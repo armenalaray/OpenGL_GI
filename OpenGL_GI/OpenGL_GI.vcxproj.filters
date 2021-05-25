@@ -27,6 +27,9 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -35,12 +38,21 @@
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.vert">
+    <None Include="Object.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shader.frag">
+    <None Include="Object.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Light.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Light.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

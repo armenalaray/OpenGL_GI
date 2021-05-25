@@ -2,6 +2,11 @@
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -12,11 +17,12 @@ class Shader
 public:
 	//Reads Shaders files and Constructs shader program
 	Shader(const char* vertexShaderPath, const char* fragmentShaderPath);
-	void Use();
-	void SetVar(const char* varName, bool value);
-	void SetVar(const char* varName, int value);
-	void SetVar(const char* varName, float value);
-	void SetVar(const char* varName, float v0, float v1, float v2, float v3);
+	void use();
+	void setVar(const char* varName, bool value);
+	void setVar(const char* varName, int value);
+	void setVar(const char* varName, float value);
+	void setVar(const char* varName, glm::vec3 v0);
+	void setVar(const char* varName, glm::vec4 v0);
 	unsigned int  GetID();
 private:
 	unsigned int programID;

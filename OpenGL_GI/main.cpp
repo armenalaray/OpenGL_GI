@@ -11,6 +11,8 @@
 #include "stb_image.h"
 
 #include "Shader.h"
+#include "Camera.h"
+
 /*
 GLSL useful features specifically targeted at vector and matrix manipulation.
 vertex shader -> input is called vertex attribute
@@ -48,31 +50,13 @@ We can use GL_TEXTURE0 + 8 for example.
 int viewPortWidth = 800;
 int viewPortHeight = 600;
 
-////Gram-Schmidt process
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraTarget = glm::vec3(0, 0, 0);
-glm::vec3 up = glm::vec3(0, 1.f, 0);
-
-glm::vec3 camZ = glm::normalize(cameraPos - cameraTarget);
-glm::vec3 camX = glm::normalize(glm::cross(up, camZ));
-glm::vec3 camY = glm::cross(camZ, camX);
-
-glm::vec3 cameraFront = -camZ;
-glm::vec3 cameraRight = camX;
-
 float deltaTime = 0.0f;
 float currentFrame = 0.0f;
 float lastFrame = 0.0f;
-float unitsToAdvance = 0.0f;
-float cameraSpeed = 12.5f;
 
-float lastMouseXP = ((float)viewPortWidth * 0.5f);
-float lastMouseYP = ((float)viewPortHeight * 0.5f);
+Camera camera(viewPortWidth, viewPortHeight);
 
-float yaw = -90.0f;
-float pitch = 0.0f;
-
-float calcDeltaTime()
+extern float calcDeltaTime()
 {
 	currentFrame = (float)glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
@@ -88,64 +72,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 //NOTE: xpos and ypos are screen pixel coordinates. 800 width * 600 height.
 void mouse_callback(GLFWwindow* window, double mouseXPD, double mouseYPD)
 {
-	float mouseXP = (float)mouseXPD;
-	float mouseYP = (float)mouseYPD;
+	camera.translate(mouseXPD, mouseYPD);
+}
 
-	float xOffset = mouseXP - lastMouseXP;
-	float yOffset = lastMouseYP - mouseYP;
-	lastMouseXP = mouseXP;
-	lastMouseYP = mouseYP;
-
-	const float sensitivity = 0.1f;
-	xOffset *= sensitivity;
-	yOffset *= sensitivity;
-
-	yaw += xOffset;
-	pitch += yOffset;
-
-	if (pitch > 89.0f) pitch = 89.0f;
-	if (pitch < -89.0f) pitch = -89.0f;
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
+{
+	camera.scroll(xOffset, yOffset);
 }
 
 void process_input(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += unitsToAdvance * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos += -(unitsToAdvance * cameraRight);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos += -(unitsToAdvance * cameraFront);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += unitsToAdvance * cameraRight;
-
+	camera.move(window);
 }
 
 int main()
 {
 	calcDeltaTime();
-
-	//glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-	////NOTE: initializaes identity matrix 4
-	//glm::mat4 trans = glm::mat4(1.0f);
-	//trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-	//vec = trans * vec;
-	//std::cout << vec.x << " " << vec.y << " " << vec.z << " " << vec.w << " " << std::endl;
-
-	//glm::mat4 trans = glm::mat4(1.0f);
-	//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0, 0, 1));
-	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-
-	//const char* vertexShaderSource = "#version 330 core\nlayout (location=0) in vec3 aPos;\nvoid main(){\ngl_Position=vec4(aPos.x,aPos.y,aPos.z,1.0);}\n\0";
-	//const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nvoid main(){\nFragColor=vec4(1.0f,0.5f,0.2f,1.0f);}\n\0";
-
-	//const char* vertexShaderSource = "#version 330 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColor;\nout vec3 ourColor;\nvoid main(){\ngl_Position=vec4(aPos,1.0);\nourColor=aColor;}\n\0";
-	//const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nin vec3 ourColor;\nvoid main(){\nFragColor=vec4(ourColor,1.0);}\n\0";
-
-	//const char* vertexShaderSource = "#version 330 core\nlayout (location=0) in vec3 aPos;\nvoid main(){\ngl_Position=vec4(aPos.x,aPos.y,aPos.z,1.0);}\n\0";
-	//const char* fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nuniform vec4 ourColor;\nvoid main(){\nFragColor=ourColor;}\n\0";
-
 	
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -167,8 +111,9 @@ int main()
 		return -1;
 	}
 
+	//TODO: enable cursor if out window not current!!!
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
+	glfwSetScrollCallback(window, scroll_callback);
 	glViewport(0, 0, 800, 600);
 	/*
 	We register the callback functions after we've created the window and before the render loop is initiated.
@@ -176,195 +121,213 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
-	Shader ps("shader.vert", "shader.frag");
+	Shader objectShader("Object.vert", "Object.frag");
+	Shader lightShader("Light.vert", "Light.frag");
 
 	//Object Generation
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
+	unsigned int objectVAO;
+	glGenVertexArrays(1, &objectVAO);
+	glBindVertexArray(objectVAO);
 
-	//Initialization code(done once(unless your object frequently changes))
-	//1. bind Vertex Array Object
-	glBindVertexArray(VAO);
-
-	/*
-	float vertices[] =
-	{
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f,
-	};
-	*/
-	
-	float vertices[] = {
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-
-	//float vertices[] = {
-	//	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,   //top-right
-	//	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, -1.0f,  //bottom-right
-	//	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, //bottom-left
-	//	-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 2.0f   //top-left
-	//};
-	//
-	//unsigned int indices[] = {
-	//	0,1,3,
-	//	1,2,3,
-	//};
-
-
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
-	//unsigned int EBO;
-	//glGenBuffers(1, &EBO);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	
-	/*
-	Each vertex attribute takes its data from memory managed by a VBO and which VBO it takes its data from (you can have multiple VBOs) is determined by the VBO
-	currently bound to GL_ARRAY_BUFFER when calling glVertexAttribPointer. Since the previously defined VBO is still bound before calling glVertexAttribPointer
-	vertex attribute 0 is now associated with its vertex data.
-
-	index: specifies the index of the generic vertex attribute to be modified.
-	size: specifies the number of components per generic vertex attribute. Must be 1,2,3,4
-
-	stride: specifies the byte offset between consecutive generic vertex attributes.
-	If stride is 0, the generic vertex attributes are understood to be tightly packed in the array.
-
-	Specifies a offset of the first component of the first generic vertex attribute in the array
-	int the data store of the buffer currently bound to the GL_ARRAY_BUFFER target.
-	*/
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-
-	//vertex position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	
-	////vertex color attribute
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	
-	//texture coordinates attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	//Texture object generation
-
-	unsigned int texture0ID;
-	glGenTextures(1, &texture0ID);
-	glBindTexture(GL_TEXTURE_2D, texture0ID);
-
-	//set the texture wrapping/filtering options (on the currently bound texxture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	{
-		stbi_set_flip_vertically_on_load(true);
-		int width, height, chaCount;
-		//TODO: Check how we are receiving the data!!!
-		unsigned char* data = stbi_load("Source\\Textures\\pelican.jpg", &width, &height, &chaCount, 0);
-		if (data)
+		/*
+		float vertices[] =
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
-		}
-		else
+			-0.5f, -0.5f, 0.0f,
+			 0.5f, -0.5f, 0.0f,
+			 0.0f,  0.5f, 0.0f,
+		};
+		*/
+		
+		float vertices[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		};
+
+		//float vertices[] = {
+		//	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,   //top-right
+		//	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, -1.0f,  //bottom-right
+		//	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, //bottom-left
+		//	-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 2.0f   //top-left
+		//};
+		//
+		//unsigned int indices[] = {
+		//	0,1,3,
+		//	1,2,3,
+		//};
+
+
+		unsigned int VBO;
+		glGenBuffers(1, &VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		
+		//unsigned int EBO;
+		//glGenBuffers(1, &EBO);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		
+		/*
+		Each vertex attribute takes its data from memory managed by a VBO and which VBO it takes its data from (you can have multiple VBOs) is determined by the VBO
+		currently bound to GL_ARRAY_BUFFER when calling glVertexAttribPointer. Since the previously defined VBO is still bound before calling glVertexAttribPointer
+		vertex attribute 0 is now associated with its vertex data.
+
+		index: specifies the index of the generic vertex attribute to be modified.
+		size: specifies the number of components per generic vertex attribute. Must be 1,2,3,4
+
+		stride: specifies the byte offset between consecutive generic vertex attributes.
+		If stride is 0, the generic vertex attributes are understood to be tightly packed in the array.
+
+		Specifies a offset of the first component of the first generic vertex attribute in the array
+		int the data store of the buffer currently bound to the GL_ARRAY_BUFFER target.
+		*/
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(0);
+
+		//vertex position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		
+		////vertex color attribute
+		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+		//glEnableVertexAttribArray(1);
+		
+		//texture coordinates attribute
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		//Texture object generation
+
+		unsigned int texture0ID;
+		glGenTextures(1, &texture0ID);
+		glBindTexture(GL_TEXTURE_2D, texture0ID);
+
+		//set the texture wrapping/filtering options (on the currently bound texxture object)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 		{
-			std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			stbi_set_flip_vertically_on_load(true);
+			int width, height, chaCount;
+			//TODO: Check how we are receiving the data!!!
+			unsigned char* data = stbi_load("Source\\Textures\\pelican.jpg", &width, &height, &chaCount, 0);
+			if (data)
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+			}
+			else
+			{
+				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			}
+			stbi_image_free(data);
 		}
-		stbi_image_free(data);
-	}
+		
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		//Texture object generation
+
+		unsigned int texture1ID;
+		glGenTextures(1, &texture1ID);
+		glBindTexture(GL_TEXTURE_2D, texture1ID);
+
+		//set the texture wrapping/filtering options (on the currently bound texxture object)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		{
+			stbi_set_flip_vertically_on_load(true);
+			int width, height, chaCount;
+			//TODO: Check how we are receiving the data!!!
+			unsigned char* data = stbi_load("Source\\Textures\\face.png", &width, &height, &chaCount, 0);
+			if (data)
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+			}
+			else
+			{
+				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			}
+			stbi_image_free(data);
+		}
+		glBindTexture(GL_TEXTURE_2D, 0);
 	
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 
-	//Texture object generation
+	unsigned int lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
 
-	unsigned int texture1ID;
-	glGenTextures(1, &texture1ID);
-	glBindTexture(GL_TEXTURE_2D, texture1ID);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	//set the texture wrapping/filtering options (on the currently bound texxture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//vertex position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
 
-	{
-		stbi_set_flip_vertically_on_load(true);
-		int width, height, chaCount;
-		//TODO: Check how we are receiving the data!!!
-		unsigned char* data = stbi_load("Source\\Textures\\face.png", &width, &height, &chaCount, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
-		}
-		else
-		{
-			std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
-		}
-		stbi_image_free(data);
-	}
-	glBindTexture(GL_TEXTURE_2D, 0);
+		////vertex color attribute
+		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+		//glEnableVertexAttribArray(1);
+
+		//texture coordinates attribute
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+	glBindVertexArray(0);
 	
 	glEnable(GL_DEPTH_TEST);
 
-	ps.Use();
-	ps.SetVar("texture0", 0);
-	ps.SetVar("texture1", 1);
+	
 
 	glm::vec3 cubePositions[] = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
-	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(3.0f,  0.0f, 0.0f),
 	glm::vec3(-1.5f, -2.2f, -2.5f),
 	glm::vec3(-3.8f, -2.0f, -12.3f),
 	glm::vec3(2.4f, -0.4f, -3.5f),
@@ -378,57 +341,82 @@ int main()
 	
 	while (!glfwWindowShouldClose(window))
 	{
-		unitsToAdvance = cameraSpeed * calcDeltaTime();
 		process_input(window);
 
-		glClearColor(0.3f, 0.2f, 0.6f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		objectShader.use();
+		objectShader.setVar("texture0", 0);
+		objectShader.setVar("texture1", 1);
+		objectShader.setVar("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+		objectShader.setVar("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		
+		glBindVertexArray(objectVAO);		
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture0ID);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture1ID);
 
-		glBindVertexArray(VAO);
+		{
+			glm::mat4 projection = camera.getProjectionMatrix();
+			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
+			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(45.0f), (float)viewPortWidth / (float)viewPortHeight, 0.1f, 100.0f);
-		unsigned int perspLoc = glGetUniformLocation(ps.GetID(), "projection");
-		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			glm::mat4 view = camera.getViewMatrix();
+			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-		//float radius = 10.0f;
-		//float camPosX = cosf((float)glfwGetTime()) * radius;
-		//float camPosZ = sinf((float)glfwGetTime()) * radius;
-
-		glm::vec3 dir;
-		dir.x = cosf(glm::radians(pitch)) * cosf(glm::radians(yaw));
-		dir.y = sinf(glm::radians(pitch));
-		dir.z = cosf(glm::radians(pitch)) * sinf(glm::radians(yaw));
-		cameraFront = glm::normalize(dir);
-		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-		unsigned int viewLoc = glGetUniformLocation(ps.GetID(), "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-
-		for (unsigned int i = 0; i < 10; ++i) {
 			glm::mat4 model = glm::mat4(1.0f);	
-			//model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.0f * i;
-			model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-
-			unsigned int modelLoc = glGetUniformLocation(ps.GetID(), "model");
+			model = glm::translate(model, cubePositions[0]);
+			//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
+			
+			
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		}
-		
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindVertexArray(0);
+
+
+		lightShader.use();
+		glBindVertexArray(lightVAO);
+
+		{
+			glm::mat4 projection = camera.getProjectionMatrix();
+			unsigned int perspLoc = glGetUniformLocation(lightShader.GetID(), "projection");
+			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+			glm::mat4 view = camera.getViewMatrix();
+			unsigned int viewLoc = glGetUniformLocation(lightShader.GetID(), "view");
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[1]);
+			model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+			unsigned int modelLoc = glGetUniformLocation(lightShader.GetID(), "model");
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		}
+
+		glBindVertexArray(0);
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	glDeleteVertexArrays(1, &objectVAO);
+	glDeleteVertexArrays(1, &lightVAO);
+	glDeleteBuffers(1, &VBO);
 
 	glfwTerminate();
 	return 0;
