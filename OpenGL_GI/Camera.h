@@ -7,6 +7,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 extern float calcDeltaTime();
+extern bool activeFocus;
 
 class Camera
 {
@@ -16,8 +17,9 @@ public:
 	void move(GLFWwindow* window);
 	glm::mat4 getProjectionMatrix();
 	glm::mat4 getViewMatrix();
-	void translate(double mouseXPD, double mouseYPD);
-
+	void rotate(double mouseXPD, double mouseYPD);
+	void setFirstMouse(bool value);
+	glm::vec3 getCameraPos();
 private:
 	
 	int viewPortWidth;
