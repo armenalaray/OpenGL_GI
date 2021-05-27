@@ -17,6 +17,7 @@ void main()
 {
 	gl_Position = projection * view * model * vec4(aPos,1.0);
 	//this is wrong we need to pass the normal in world space not in object space.
+	//NORMALS CORRECT!!
 	normal = transpose(inverse(mat3(model))) * aNormal;
 	//normal = mat3(transpose(inverse(model))) * aNormal;
 	objectPos = vec3(model * vec4(aPos,1.0));
