@@ -6,6 +6,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -463,7 +466,13 @@ int main()
 	glm::vec3(1.5f,  0.2f, -1.5f),
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
-
+	
+	glm::vec3 pointLightPositions[] = {
+	glm::vec3(0.7f,  0.2f,  2.0f),
+	glm::vec3(2.3f, -3.3f, -4.0f),
+	glm::vec3(-4.0f,  2.0f, -12.0f),
+	glm::vec3(0.0f,  0.0f, -3.0f)
+	};
 	//const int cubeCountX = 5;
 	//const int cubeCountY = 4;
 	//glm::vec3 cubePositions[cubeCountY][cubeCountX] = {};
@@ -476,8 +485,16 @@ int main()
 	//}
 
 	//glm::vec3 lightPos = glm::vec3((float)cubeCountX * 0.5f, (float)cubeCountY *0.5f, 5.0f);
-	glm::vec4 lightDir = glm::vec4(-0.5f,-0.2f,-0.5f,0.0f);
-	glm::vec4 lightPos = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	glm::vec3 lightDir = glm::vec3(-0.5f,-0.2f,-0.5f);
+	glm::vec3 lightPos = glm::vec3(1.0f, 1.0f, 1.0f);
+	
+	glm::vec3 ambientLightIntensity = glm::vec3(0.1f, 0.1f, 0.1f);
+	glm::vec3 diffuseLightIntensity = glm::vec3(0.4f, 0.4f, 0.4f);
+	glm::vec3 specularLightIntensity = glm::vec3(0.5f, 0.5f, 0.5f);
+	float c, l, q;
+	c = 1.0f;
+	l = 0.09f;
+	q = 0.032f;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -504,18 +521,79 @@ int main()
 
 		objectShader.setVar("viewPos", camera.getCameraPos());
 
-		objectShader.setVar("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		objectShader.setVar("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		objectShader.setVar("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		//objectShader.setVar("light.position", lightPos);
-		//NOTE: directional light!!!
-		objectShader.setVar("light.lightVector", lightPos);
-		//NOTE: 50 units range point light
-		objectShader.setVar("light.c", 1.0f);
-		objectShader.setVar("light.l", 0.09f);
-		objectShader.setVar("light.q", 0.032f);
+		//objectShader.setVar("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+		//objectShader.setVar("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		//objectShader.setVar("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		////objectShader.setVar("light.position", lightPos);
+		////NOTE: directional light!!!
+		//objectShader.setVar("light.lightVector", lightPos);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("light.c", 1.0f);
+		//objectShader.setVar("light.l", 0.09f);
+		//objectShader.setVar("light.q", 0.032f);
 
 		
+		//DirectionalLight
+		objectShader.setVar("dLight.direction", lightDir);
+		objectShader.setVar("dLight.ambient",  glm::vec3(0.1f, 0.1f, 0.1f));
+		objectShader.setVar("dLight.diffuse",  glm::vec3(0.4f, 0.0f, 0.0f));
+		objectShader.setVar("dLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+
+		//SpotLight:
+		objectShader.setVar("sLight.position", camera.getCameraPos());
+		objectShader.setVar("sLight.spotDirection", camera.getCameraFront());
+		objectShader.setVar("sLight.innerCutoff", cosf(glm::radians(12.0f)));
+		objectShader.setVar("sLight.outerCutoff", cosf(glm::radians(17.0f)));
+
+		objectShader.setVar("sLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+		objectShader.setVar("sLight.diffuse", glm::vec3(0.0f, 0.4f, 0.0f));
+		objectShader.setVar("sLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		//NOTE: 50 units range point light
+		objectShader.setVar("sLight.c", 1.0f);
+		objectShader.setVar("sLight.l", 0.045f);
+		objectShader.setVar("sLight.q", 0.0075f);
+
+		//PointLight 0:
+		objectShader.setVar("pLight[0].ambient",  ambientLightIntensity );
+		objectShader.setVar("pLight[0].diffuse",  diffuseLightIntensity );
+		objectShader.setVar("pLight[0].specular", specularLightIntensity);
+		objectShader.setVar("pLight[0].position", pointLightPositions[0]);
+		//NOTE: 50 units range point light
+		objectShader.setVar("pLight[0].c", c);
+		objectShader.setVar("pLight[0].l", l);
+		objectShader.setVar("pLight[0].q", q);
+		
+		//PointLight 1:
+		objectShader.setVar("pLight[1].ambient", ambientLightIntensity);
+		objectShader.setVar("pLight[1].diffuse", diffuseLightIntensity);
+		objectShader.setVar("pLight[1].specular", specularLightIntensity);
+		objectShader.setVar("pLight[1].position", pointLightPositions[1]);
+		//NOTE: 50 units range point light
+		objectShader.setVar("pLight[1].c", c);
+		objectShader.setVar("pLight[1].l", l);
+		objectShader.setVar("pLight[1].q", q);
+
+		//PointLight 2:
+		objectShader.setVar("pLight[2].ambient", ambientLightIntensity);
+		objectShader.setVar("pLight[2].diffuse", diffuseLightIntensity);
+		objectShader.setVar("pLight[2].specular", specularLightIntensity);
+		objectShader.setVar("pLight[2].position", pointLightPositions[2]);
+		//NOTE: 50 units range point light
+		objectShader.setVar("pLight[2].c", c);
+		objectShader.setVar("pLight[2].l", l);
+		objectShader.setVar("pLight[2].q", q);
+
+		//PointLight 3:
+		objectShader.setVar("pLight[3].ambient", ambientLightIntensity);
+		objectShader.setVar("pLight[3].diffuse", diffuseLightIntensity);
+		objectShader.setVar("pLight[3].specular", specularLightIntensity);
+		objectShader.setVar("pLight[3].position", pointLightPositions[3]);
+		//NOTE: 50 units range point light
+		objectShader.setVar("pLight[3].c", c);
+		objectShader.setVar("pLight[3].l", l);
+		objectShader.setVar("pLight[3].q", q);
+
+
 		glBindVertexArray(objectVAO);
 
 		for(int i = 0;i < 10; ++i)
@@ -550,83 +628,8 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
-#if 0
-		{
-			//jade
-			objectShader.setVar("mat.ambient", glm::vec3(0.135f, 0.2225f, 0.1575f));
-			objectShader.setVar("mat.diffuse", glm::vec3(0.54f, 0.89f, 0.63f));
-			objectShader.setVar("mat.specular", glm::vec3(0.316228f, 0.316228f, 0.316228f));
-			objectShader.setVar("mat.shininess", 0.1f*128.0f);
 
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[0][1]);
-			//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-		{
-			//obsidian
-			objectShader.setVar("mat.ambient", glm::vec3(0.05375f, 0.05f, 0.06625));
-			objectShader.setVar("mat.diffuse", glm::vec3(0.18275, 0.17, 0.22525));
-			objectShader.setVar("mat.specular", glm::vec3(0.332741, 0.328634, 0.346435));
-			objectShader.setVar("mat.shininess", 0.3f * 128.0f);
-
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[0][2]);
-			//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-
-		{
-			//pearl
-			objectShader.setVar("mat.ambient", glm::vec3(0.25, 0.20725, 0.20725));
-			objectShader.setVar("mat.diffuse", glm::vec3(1, 0.829, 0.829));
-			objectShader.setVar("mat.specular", glm::vec3(0.296648, 0.296648, 0.296648));
-			objectShader.setVar("mat.shininess", 0.088f * 128.0f);
-
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[0][3]);
-			//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-#endif
-
-			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		
 		glBindVertexArray(0);
 
@@ -634,6 +637,7 @@ int main()
 		lightShader.use();
 		glBindVertexArray(lightVAO);
 		
+		for(int i = 0; i < 4; ++i)
 		{
 			glm::mat4 projection = camera.getProjectionMatrix();
 			unsigned int perspLoc = glGetUniformLocation(lightShader.GetID(), "projection");
@@ -645,7 +649,7 @@ int main()
 		
 			glm::mat4 lightModel = glm::mat4(1.0f);
 			//lightModel = glm::rotate(lightModel, glm::radians(0.1f * (float)glfwGetTime()), glm::vec3(0.0f, 0.0f, 0.0f));
-			lightModel = glm::translate(lightModel, glm::vec3(lightPos.x, lightPos.y, lightPos.z));
+			lightModel = glm::translate(lightModel, pointLightPositions[i]);
 			lightModel = glm::scale(lightModel, glm::vec3(0.2f, 0.2f, 0.2f));
 			unsigned int modelLoc = glGetUniformLocation(lightShader.GetID(), "model");
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));

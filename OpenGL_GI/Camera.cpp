@@ -84,6 +84,11 @@ glm::vec3 Camera::getCameraPos()
 	return cameraPos;
 }
 
+glm::vec3 Camera::getCameraFront()
+{
+	return cameraFront;
+}
+
 void Camera::scroll(double xOffset, double yOffset)
 {
 	if(activeFocus)

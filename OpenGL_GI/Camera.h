@@ -20,6 +20,8 @@ public:
 	void rotate(double mouseXPD, double mouseYPD);
 	void setFirstMouse(bool value);
 	glm::vec3 getCameraPos();
+	glm::vec3 getCameraFront();
+
 private:
 	
 	int viewPortWidth;
