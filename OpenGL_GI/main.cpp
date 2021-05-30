@@ -6,17 +6,15 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "Shader.h"
 #include "Camera.h"
+#include "Model.h"
 
 /*
+* 
+* YOUAREHER: Data Structures - https://assimp-docs.readthedocs.io/en/latest/usage/use_the_lib.html
+* 
+* 
 GLSL useful features specifically targeted at vector and matrix manipulation.
 vertex shader -> input is called vertex attribute
 So each vertex attribute is a member of the data structure you define to use!!! in vertex shader.
@@ -220,6 +218,7 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
+	glFrontFace(GL_CCW);
 	//int flags;
 	//glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 	//if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
@@ -230,228 +229,34 @@ int main()
 	//	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	//}
 
-	Shader objectShader("Object.vert", "Object.frag");
+	Shader objectShader("Object.vert", "backpack.frag");
 	Shader lightShader("Light.vert", "Light.frag");
 
-	//Object Generation
+	Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
 
-	unsigned int objectVAO;
-	glGenVertexArrays(1, &objectVAO);
-	glBindVertexArray(objectVAO);
-
-		/*
-		float vertices[] =
-		{
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.0f,  0.5f, 0.0f,
-		};
-		*/
-		
-	float vertices[] = {
-		// positions          // normals           // texture coords
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-	};
-
-		//float vertices[] = {
-		//	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,   //top-right
-		//	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, -1.0f,  //bottom-right
-		//	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, //bottom-left
-		//	-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 2.0f   //top-left
-		//};
-		//
-		//unsigned int indices[] = {
-		//	0,1,3,
-		//	1,2,3,
-		//};
-
-
-		unsigned int VBO;
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		
-		//unsigned int EBO;
-		//glGenBuffers(1, &EBO);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	
-		//vertex position attribute
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		
-		////vertex color attribute
-		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
-		//glEnableVertexAttribArray(1);
-		
-		//vertex normal attribute
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		//texture coordinates attribute
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-
-
-		//Texture object generation
-
-		unsigned int texture0ID;
-		glGenTextures(1, &texture0ID);
-		glBindTexture(GL_TEXTURE_2D, texture0ID);
-
-		//set the texture wrapping/filtering options (on the currently bound texture object)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		{
-			stbi_set_flip_vertically_on_load(true);
-			int width, height, chaCount;
-			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\crane_diffuse.png", &width, &height, &chaCount, 0);
-			if (data)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
-			}
-			else
-			{
-				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
-			}
-			stbi_image_free(data);
-		}
-		
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		//Texture object generation
-		
-		unsigned int texture1ID;
-		glGenTextures(1, &texture1ID);
-		glBindTexture(GL_TEXTURE_2D, texture1ID);
-		
-		//set the texture wrapping/filtering options (on the currently bound texxture object)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
-		{
-			stbi_set_flip_vertically_on_load(true);
-			int width, height, chaCount;
-			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\crane_specular.png", &width, &height, &chaCount, 0);
-			if (data)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
-			}
-			else
-			{
-				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
-			}
-			stbi_image_free(data);
-		}
-		glBindTexture(GL_TEXTURE_2D, 0);
-		
-		//Texture object generation
-
-		unsigned int texture2ID;
-		glGenTextures(1, &texture2ID);
-		glBindTexture(GL_TEXTURE_2D, texture2ID);
-
-		//set the texture wrapping/filtering options (on the currently bound texxture object)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		{
-			stbi_set_flip_vertically_on_load(true);
-			int width, height, chaCount;
-			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\crane_emission.jpg", &width, &height, &chaCount, 0);
-			if (data)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
-			}
-			else
-			{
-				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
-			}
-			stbi_image_free(data);
-		}
-		glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
-
-	unsigned int lightVAO;
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-		//vertex position attribute
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-
-		////vertex color attribute
-		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
-		//glEnableVertexAttribArray(1);
-
-		////texture coordinates attribute
-		//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-		//glEnableVertexAttribArray(1);
-
-		//vertex normal attribute
-		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-		//glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
+	//unsigned int lightVAO;
+	//glGenVertexArrays(1, &lightVAO);
+	//glBindVertexArray(lightVAO);
+	//
+	//	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//
+	//	//vertex position attribute
+	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	//	glEnableVertexAttribArray(0);
+	//
+	//	////vertex color attribute
+	//	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+	//	//glEnableVertexAttribArray(1);
+	//
+	//	////texture coordinates attribute
+	//	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	//	//glEnableVertexAttribArray(1);
+	//
+	//	//vertex normal attribute
+	//	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//	//glEnableVertexAttribArray(1);
+	//
+	//glBindVertexArray(0);
 	
 	glEnable(GL_DEPTH_TEST);
 	glm::vec3 cubePositions[] = {
@@ -506,6 +311,25 @@ int main()
 		//lightPos.z = sinf(0.5f * (float)glfwGetTime()) * 2.0f;
 		//lightPos.y = 2.0f;
 		objectShader.use();
+		//objectShader.setVar("viewPos", camera.getCameraPos());
+
+		glm::mat4 projection = camera.getProjectionMatrix();
+		unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
+		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		glm::mat4 view = camera.getViewMatrix();
+		unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0,0,0));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		
+		bpModel.Draw(objectShader);
+
 		//objectShader.setVar("texture0", 0);
 		//objectShader.setVar("texture1", 1);
 
@@ -519,7 +343,6 @@ int main()
 		//objectShader.setVar("light.ambient", ambientColor);
 		//objectShader.setVar("light.diffuse", diffuseColor);
 
-		objectShader.setVar("viewPos", camera.getCameraPos());
 
 		//objectShader.setVar("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		//objectShader.setVar("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
@@ -533,141 +356,137 @@ int main()
 		//objectShader.setVar("light.q", 0.032f);
 
 		
-		//DirectionalLight
-		objectShader.setVar("dLight.direction", lightDir);
-		objectShader.setVar("dLight.ambient",  glm::vec3(0.1f, 0.1f, 0.1f));
-		objectShader.setVar("dLight.diffuse",  glm::vec3(0.4f, 0.0f, 0.0f));
-		objectShader.setVar("dLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		////DirectionalLight
+		//objectShader.setVar("dLight.direction", lightDir);
+		//objectShader.setVar("dLight.ambient",  glm::vec3(0.1f, 0.1f, 0.1f));
+		//objectShader.setVar("dLight.diffuse",  glm::vec3(0.4f, 0.0f, 0.0f));
+		//objectShader.setVar("dLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 
-		//SpotLight:
-		objectShader.setVar("sLight.position", camera.getCameraPos());
-		objectShader.setVar("sLight.spotDirection", camera.getCameraFront());
-		objectShader.setVar("sLight.innerCutoff", cosf(glm::radians(12.0f)));
-		objectShader.setVar("sLight.outerCutoff", cosf(glm::radians(17.0f)));
+		////SpotLight:
+		//objectShader.setVar("sLight.position", camera.getCameraPos());
+		//objectShader.setVar("sLight.spotDirection", camera.getCameraFront());
+		//objectShader.setVar("sLight.innerCutoff", cosf(glm::radians(12.0f)));
+		//objectShader.setVar("sLight.outerCutoff", cosf(glm::radians(17.0f)));
 
-		objectShader.setVar("sLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-		objectShader.setVar("sLight.diffuse", glm::vec3(0.0f, 0.4f, 0.0f));
-		objectShader.setVar("sLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-		//NOTE: 50 units range point light
-		objectShader.setVar("sLight.c", 1.0f);
-		objectShader.setVar("sLight.l", 0.045f);
-		objectShader.setVar("sLight.q", 0.0075f);
+		//objectShader.setVar("sLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+		//objectShader.setVar("sLight.diffuse", glm::vec3(0.0f, 0.4f, 0.0f));
+		//objectShader.setVar("sLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		////NOTE: 50 units range point light
+		//objectShader.setVar("sLight.c", 1.0f);
+		//objectShader.setVar("sLight.l", 0.045f);
+		//objectShader.setVar("sLight.q", 0.0075f);
 
-		//PointLight 0:
-		objectShader.setVar("pLight[0].ambient",  ambientLightIntensity );
-		objectShader.setVar("pLight[0].diffuse",  diffuseLightIntensity );
-		objectShader.setVar("pLight[0].specular", specularLightIntensity);
-		objectShader.setVar("pLight[0].position", pointLightPositions[0]);
-		//NOTE: 50 units range point light
-		objectShader.setVar("pLight[0].c", c);
-		objectShader.setVar("pLight[0].l", l);
-		objectShader.setVar("pLight[0].q", q);
-		
-		//PointLight 1:
-		objectShader.setVar("pLight[1].ambient", ambientLightIntensity);
-		objectShader.setVar("pLight[1].diffuse", diffuseLightIntensity);
-		objectShader.setVar("pLight[1].specular", specularLightIntensity);
-		objectShader.setVar("pLight[1].position", pointLightPositions[1]);
-		//NOTE: 50 units range point light
-		objectShader.setVar("pLight[1].c", c);
-		objectShader.setVar("pLight[1].l", l);
-		objectShader.setVar("pLight[1].q", q);
+		////PointLight 0:
+		//objectShader.setVar("pLight[0].ambient",  ambientLightIntensity );
+		//objectShader.setVar("pLight[0].diffuse",  diffuseLightIntensity );
+		//objectShader.setVar("pLight[0].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[0].position", pointLightPositions[0]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[0].c", c);
+		//objectShader.setVar("pLight[0].l", l);
+		//objectShader.setVar("pLight[0].q", q);
+		//
+		////PointLight 1:
+		//objectShader.setVar("pLight[1].ambient", ambientLightIntensity);
+		//objectShader.setVar("pLight[1].diffuse", diffuseLightIntensity);
+		//objectShader.setVar("pLight[1].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[1].position", pointLightPositions[1]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[1].c", c);
+		//objectShader.setVar("pLight[1].l", l);
+		//objectShader.setVar("pLight[1].q", q);
 
-		//PointLight 2:
-		objectShader.setVar("pLight[2].ambient", ambientLightIntensity);
-		objectShader.setVar("pLight[2].diffuse", diffuseLightIntensity);
-		objectShader.setVar("pLight[2].specular", specularLightIntensity);
-		objectShader.setVar("pLight[2].position", pointLightPositions[2]);
-		//NOTE: 50 units range point light
-		objectShader.setVar("pLight[2].c", c);
-		objectShader.setVar("pLight[2].l", l);
-		objectShader.setVar("pLight[2].q", q);
+		////PointLight 2:
+		//objectShader.setVar("pLight[2].ambient", ambientLightIntensity);
+		//objectShader.setVar("pLight[2].diffuse", diffuseLightIntensity);
+		//objectShader.setVar("pLight[2].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[2].position", pointLightPositions[2]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[2].c", c);
+		//objectShader.setVar("pLight[2].l", l);
+		//objectShader.setVar("pLight[2].q", q);
 
-		//PointLight 3:
-		objectShader.setVar("pLight[3].ambient", ambientLightIntensity);
-		objectShader.setVar("pLight[3].diffuse", diffuseLightIntensity);
-		objectShader.setVar("pLight[3].specular", specularLightIntensity);
-		objectShader.setVar("pLight[3].position", pointLightPositions[3]);
-		//NOTE: 50 units range point light
-		objectShader.setVar("pLight[3].c", c);
-		objectShader.setVar("pLight[3].l", l);
-		objectShader.setVar("pLight[3].q", q);
-
-
-		glBindVertexArray(objectVAO);
-
-		for(int i = 0;i < 10; ++i)
-		{
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture0ID);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, texture1ID);
-			//glActiveTexture(GL_TEXTURE2);
-			//glBindTexture(GL_TEXTURE_2D, texture2ID);
-
-			objectShader.setVar("mat.diffuse", 0);
-			objectShader.setVar("mat.specular", 1);
-			objectShader.setVar("mat.emission", 2);
-			objectShader.setVar("mat.shininess", 0.6f * 128.0f);
-
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		
-		glBindVertexArray(0);
+		////PointLight 3:
+		//objectShader.setVar("pLight[3].ambient", ambientLightIntensity);
+		//objectShader.setVar("pLight[3].diffuse", diffuseLightIntensity);
+		//objectShader.setVar("pLight[3].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[3].position", pointLightPositions[3]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[3].c", c);
+		//objectShader.setVar("pLight[3].l", l);
+		//objectShader.setVar("pLight[3].q", q);
 
 
-		lightShader.use();
-		glBindVertexArray(lightVAO);
-		
-		for(int i = 0; i < 4; ++i)
-		{
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(lightShader.GetID(), "projection");
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		
-			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(lightShader.GetID(), "view");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		
-			glm::mat4 lightModel = glm::mat4(1.0f);
-			//lightModel = glm::rotate(lightModel, glm::radians(0.1f * (float)glfwGetTime()), glm::vec3(0.0f, 0.0f, 0.0f));
-			lightModel = glm::translate(lightModel, pointLightPositions[i]);
-			lightModel = glm::scale(lightModel, glm::vec3(0.2f, 0.2f, 0.2f));
-			unsigned int modelLoc = glGetUniformLocation(lightShader.GetID(), "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
-			
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		}
+		//glBindVertexArray(objectVAO);
 
-		glBindVertexArray(0);
+		//for(int i = 0;i < 10; ++i)
+		//{
+		//	//glActiveTexture(GL_TEXTURE0);
+		//	//glBindTexture(GL_TEXTURE_2D, texture0ID);
+		//	//glActiveTexture(GL_TEXTURE1);
+		//	//glBindTexture(GL_TEXTURE_2D, texture1ID);
+		//	//glActiveTexture(GL_TEXTURE2);
+		//	//glBindTexture(GL_TEXTURE_2D, texture2ID);
+
+		//	objectShader.setVar("mat.diffuse", 0);
+		//	objectShader.setVar("mat.specular", 1);
+		//	objectShader.setVar("mat.emission", 2);
+		//	objectShader.setVar("mat.shininess", 0.6f * 128.0f);
+
+		//	glm::mat4 projection = camera.getProjectionMatrix();
+		//	unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
+		//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		//	glm::mat4 view = camera.getViewMatrix();
+		//	unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
+		//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, cubePositions[i]);
+		//	//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+		//	//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		//	unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glBindTexture(GL_TEXTURE_2D, 0);
+		//}
+
+		////glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//
+		//glBindVertexArray(0);
 
 
+		//lightShader.use();
+		//glBindVertexArray(lightVAO);
+		//
+		//for(int i = 0; i < 4; ++i)
+		//{
+		//	glm::mat4 projection = camera.getProjectionMatrix();
+		//	unsigned int perspLoc = glGetUniformLocation(lightShader.GetID(), "projection");
+		//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		//
+		//	glm::mat4 view = camera.getViewMatrix();
+		//	unsigned int viewLoc = glGetUniformLocation(lightShader.GetID(), "view");
+		//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		//
+		//	glm::mat4 lightModel = glm::mat4(1.0f);
+		//	//lightModel = glm::rotate(lightModel, glm::radians(0.1f * (float)glfwGetTime()), glm::vec3(0.0f, 0.0f, 0.0f));
+		//	lightModel = glm::translate(lightModel, pointLightPositions[i]);
+		//	lightModel = glm::scale(lightModel, glm::vec3(0.2f, 0.2f, 0.2f));
+		//	unsigned int modelLoc = glGetUniformLocation(lightShader.GetID(), "model");
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
+		//	
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//}
+
+		//glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &objectVAO);
-	glDeleteVertexArrays(1, &lightVAO);
-	glDeleteBuffers(1, &VBO);
+	
 
 	glfwTerminate();
 	return 0;
