@@ -2,8 +2,8 @@
 
 struct Material
 {
-	sampler2D diffuse;
-	sampler2D specular;
+	sampler2D texDiff_0;
+	sampler2D texSpec_0;
 	sampler2D emission;
 	float shininess;
 };
@@ -56,7 +56,7 @@ uniform vec3 viewPos;
 uniform Material mat;
 
 uniform Directional_Light dLight;
-#define POINT_LIGHT_COUNT 4
+#define POINT_LIGHT_COUNT 1
 uniform Point_Light pLight[POINT_LIGHT_COUNT];
 uniform Spot_Light sLight;
 
@@ -78,16 +78,21 @@ vec3 calcDirectionalLightComp(Directional_Light light)
 	//NOTE: the power is the shininess of the highlight
 	float specular = pow(max(dot(viewDir,refDir),0.0),mat.shininess);
 	
-	//NOTE: we skip alpha!!!
-	vec3 diffuseColor = texture(mat.diffuse, texCoord).rgb;
-	vec3 specularColor = texture(mat.specular, texCoord).rgb;
+	vec4 texDiffuse = texture(mat.texDiff_0, texCoord);
+	if(texDiffuse.a < 0.5)
+	{
+		discard;
+	}
+
+	vec3 diffuseColor = texDiffuse.rgb;
+	float specularColor = texture(mat.texSpec_0, texCoord).r;
 	vec3 emissionColor = texture(mat.emission, texCoord).rgb;
 	
 	vec3 specularLight = spotLightFallOff * specularColor * (specular * light.specular);
 	vec3 diffuseLight =  spotLightFallOff * diffuseColor * (diffuse * light.diffuse);
 	vec3 ambientLight = diffuseColor * (light.ambient);
 	
-	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight + emissionColor);
+	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight);
 	return  result;
 }
 
@@ -117,15 +122,15 @@ vec3 calcPointLightComp(Point_Light light)
 	float specular = pow(max(dot(viewDir,refDir),0.0),mat.shininess);
 	
 	//NOTE: we skip alpha!!!
-	vec3 diffuseColor = texture(mat.diffuse, texCoord).rgb;
-	vec3 specularColor = texture(mat.specular, texCoord).rgb;
+	vec3 diffuseColor = texture(mat.texDiff_0, texCoord).rgb;
+	float specularColor = texture(mat.texSpec_0, texCoord).r;
 	vec3 emissionColor = texture(mat.emission, texCoord).rgb;
 	
 	vec3 specularLight = spotLightFallOff * specularColor * (specular * light.specular);
 	vec3 diffuseLight =  spotLightFallOff * diffuseColor * (diffuse * light.diffuse);
 	vec3 ambientLight = diffuseColor * (light.ambient);
 	
-	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight + emissionColor);
+	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight);
 	return  result;
 }
 
@@ -158,31 +163,41 @@ vec3 calcSpotLightComp(Spot_Light light)
 	float specular = pow(max(dot(viewDir,refDir),0.0),mat.shininess);
 	
 	//NOTE: we skip alpha!!!
-	vec3 diffuseColor = texture(mat.diffuse, texCoord).rgb;
-	vec3 specularColor = texture(mat.specular, texCoord).rgb;
+	vec3 diffuseColor = texture(mat.texDiff_0, texCoord).rgb;
+	float specularColor = texture(mat.texSpec_0, texCoord).r;
 	vec3 emissionColor = texture(mat.emission, texCoord).rgb;
 	
 	vec3 specularLight = spotLightFallOff * specularColor * (specular * light.specular);
 	vec3 diffuseLight =  spotLightFallOff * diffuseColor * (diffuse * light.diffuse);
 	vec3 ambientLight = diffuseColor * (light.ambient);
 	
-	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight + emissionColor);
+	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight);
 	return  result;
 }
+
+uniform float near;
+uniform float far;
 
 void main()
 {
 	vec3 res = vec3(0);
 	res += calcDirectionalLightComp(dLight);
-	for(int i = 0; i < 4; ++i)
-	{
-		res += calcPointLightComp(pLight[i]);
-	}
-	res += calcSpotLightComp(sLight);
+	//for(int i = 0; i < POINT_LIGHT_COUNT; ++i)
+	//{
+	//	res += calcPointLightComp(pLight[i]);
+	//}
+	//res += calcSpotLightComp(sLight);
 	FragColor = vec4(res,1.0);
 	
-	
-	//FragColor.rgb = lightDir;
+
+	//FragColor = vec4(vec3(gl_FragCoord.z),1.0);
+	//float depth = gl_FragCoord.z;
+	//float ndc = depth*2.0-1.0;
+	//float linearDepth = (2.0 * near * far) / (far + near - ndc * (far-near));
+	//FragColor = vec4(vec3(linearDepth),1.0);
+
+	//float zValue = 1/((1/near * (-depth+1)) + (depth/far));
+
 	//FragColor.a = 1.0f;
 	//NOTE: glsl will accept negative values and treat it as zero!!!!!!
 	//FragColor.rgb = objectPos;

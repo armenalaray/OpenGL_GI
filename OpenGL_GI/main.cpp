@@ -47,8 +47,6 @@ OpenGL should have at least 16 texture units for you to use which you can activa
 We can use GL_TEXTURE0 + 8 for example.
 
 define material properties specific to each surface!!!
-
-
 */
 
 int viewPortWidth = 800;
@@ -64,28 +62,6 @@ extern bool activeFocus = true;
 Camera camera(viewPortWidth, viewPortHeight);
 
 int specularExp = 1;
-
-//GLenum glCheckError_(const char* file, int line)
-//{
-//	GLenum errorCode;
-//	while ((errorCode = glGetError()) != GL_NO_ERROR)
-//	{
-//		std::string error;
-//		switch (errorCode)
-//		{
-//		case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-//		case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-//		case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-//		case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-//		case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-//		case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-//		case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-//		}
-//		std::cout << error << " | " << file << " (" << line << ")" << std::endl;
-//	}
-//	return errorCode;
-//}
-//#define glCheckError() glCheckError_(__FILE__, __LINE__) 
 
 //void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 //{
@@ -219,6 +195,7 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	glFrontFace(GL_CCW);
+	glCheckError();
 	//int flags;
 	//glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 	//if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
@@ -229,36 +206,92 @@ int main()
 	//	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	//}
 
-	Shader objectShader("Object.vert", "backpack.frag");
+	Shader objectShader("Object.vert", "Object.frag");
 	Shader lightShader("Light.vert", "Light.frag");
 
-	Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
+	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
+	Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
+	
 
-	//unsigned int lightVAO;
-	//glGenVertexArrays(1, &lightVAO);
-	//glBindVertexArray(lightVAO);
-	//
-	//	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//
-	//	//vertex position attribute
-	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	//	glEnableVertexAttribArray(0);
-	//
-	//	////vertex color attribute
-	//	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
-	//	//glEnableVertexAttribArray(1);
-	//
-	//	////texture coordinates attribute
-	//	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	//	//glEnableVertexAttribArray(1);
-	//
-	//	//vertex normal attribute
-	//	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	//	//glEnableVertexAttribArray(1);
-	//
-	//glBindVertexArray(0);
+	float vertices[] = {
+		// positions          // normals           // texture coords
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+	};
+
+	unsigned int lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	
+	//vertex position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	
+	////vertex color attribute
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+	//glEnableVertexAttribArray(1);
+	
+	////texture coordinates attribute
+	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
+	
+	//vertex normal attribute
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
+	
+	glBindVertexArray(0);
 	
 	glEnable(GL_DEPTH_TEST);
+	glCheckError();
+	glDepthFunc(GL_LESS);
+	glCheckError();
+	//glDepthMask(GL_FALSE);
+
 	glm::vec3 cubePositions[] = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
 	glm::vec3(2.0f,  5.0f, -15.0f),
@@ -272,7 +305,8 @@ int main()
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 	
-	glm::vec3 pointLightPositions[] = {
+	const unsigned int POINT_LIGHT_COUNT = 4;
+	glm::vec3 pointLightPositions[POINT_LIGHT_COUNT] = {
 	glm::vec3(0.7f,  0.2f,  2.0f),
 	glm::vec3(2.3f, -3.3f, -4.0f),
 	glm::vec3(-4.0f,  2.0f, -12.0f),
@@ -294,8 +328,8 @@ int main()
 	glm::vec3 lightPos = glm::vec3(1.0f, 1.0f, 1.0f);
 	
 	glm::vec3 ambientLightIntensity = glm::vec3(0.1f, 0.1f, 0.1f);
-	glm::vec3 diffuseLightIntensity = glm::vec3(0.4f, 0.4f, 0.4f);
-	glm::vec3 specularLightIntensity = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 diffuseLightIntensity = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 specularLightIntensity = glm::vec3(1.0f, 1.0f, 1.0f);
 	float c, l, q;
 	c = 1.0f;
 	l = 0.09f;
@@ -306,27 +340,99 @@ int main()
 		process_input(window);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glCheckError();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glCheckError();
 		//lightPos.x = cosf(0.5f * (float)glfwGetTime()) * 2.0f;
 		//lightPos.z = sinf(0.5f * (float)glfwGetTime()) * 2.0f;
 		//lightPos.y = 2.0f;
 		objectShader.use();
-		//objectShader.setVar("viewPos", camera.getCameraPos());
+		objectShader.setVar("viewPos", camera.getCameraPos());
+		objectShader.setVar("mat.shininess", 32.0f);
+		
+		objectShader.setVar("near", camera.getNearPlane());
+		objectShader.setVar("far", camera.getFarPlane());
+
+		////SpotLight:
+		objectShader.setVar("sLight.position", camera.getCameraPos());
+		objectShader.setVar("sLight.spotDirection", camera.getCameraFront());
+		objectShader.setVar("sLight.innerCutoff", cosf(glm::radians(12.0f)));
+		objectShader.setVar("sLight.outerCutoff", cosf(glm::radians(17.0f)));
+
+		objectShader.setVar("sLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+		objectShader.setVar("sLight.diffuse", glm::vec3(0.0f, 0.4f, 0.0f));
+		objectShader.setVar("sLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		//NOTE: 50 units range point light
+		objectShader.setVar("sLight.c", 1.0f);
+		objectShader.setVar("sLight.l", 0.045f);
+		objectShader.setVar("sLight.q", 0.0075f);
+
+		//DirectionalLight
+		objectShader.setVar("dLight.direction", lightDir);
+		objectShader.setVar("dLight.ambient",  glm::vec3(0.1f, 0.1f, 0.1f));
+		objectShader.setVar("dLight.diffuse",  glm::vec3(0.5f, 0.5f, 0.5f));
+		objectShader.setVar("dLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
+		//PointLight 0:
+		objectShader.setVar("pLight[0].ambient",  ambientLightIntensity );
+		objectShader.setVar("pLight[0].diffuse",  diffuseLightIntensity );
+		objectShader.setVar("pLight[0].specular", specularLightIntensity);
+		objectShader.setVar("pLight[0].position", pointLightPositions[0]);
+		//NOTE: 50 units range point light
+		objectShader.setVar("pLight[0].c", c);
+		objectShader.setVar("pLight[0].l", l);
+		objectShader.setVar("pLight[0].q", q);
+		
+		////PointLight 1:
+		//objectShader.setVar("pLight[1].ambient", ambientLightIntensity);
+		//objectShader.setVar("pLight[1].diffuse", diffuseLightIntensity);
+		//objectShader.setVar("pLight[1].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[1].position", pointLightPositions[1]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[1].c", c);
+		//objectShader.setVar("pLight[1].l", l);
+		//objectShader.setVar("pLight[1].q", q);
+		//
+		////PointLight 2:
+		//objectShader.setVar("pLight[2].ambient", ambientLightIntensity);
+		//objectShader.setVar("pLight[2].diffuse", diffuseLightIntensity);
+		//objectShader.setVar("pLight[2].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[2].position", pointLightPositions[2]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[2].c", c);
+		//objectShader.setVar("pLight[2].l", l);
+		//objectShader.setVar("pLight[2].q", q);
+		//
+		////PointLight 3:
+		//objectShader.setVar("pLight[3].ambient", ambientLightIntensity);
+		//objectShader.setVar("pLight[3].diffuse", diffuseLightIntensity);
+		//objectShader.setVar("pLight[3].specular", specularLightIntensity);
+		//objectShader.setVar("pLight[3].position", pointLightPositions[3]);
+		////NOTE: 50 units range point light
+		//objectShader.setVar("pLight[3].c", c);
+		//objectShader.setVar("pLight[3].l", l);
+		//objectShader.setVar("pLight[3].q", q);
 
 		glm::mat4 projection = camera.getProjectionMatrix();
 		unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
+		glCheckError();
 		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		glCheckError();
 
 		glm::mat4 view = camera.getViewMatrix();
 		unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
+		glCheckError();
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glCheckError();
 
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0,0,0));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(0,0,-5.0f));
+		model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
 		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
 		unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
+		glCheckError();
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glCheckError();
 		
 		bpModel.Draw(objectShader);
 
@@ -362,59 +468,8 @@ int main()
 		//objectShader.setVar("dLight.diffuse",  glm::vec3(0.4f, 0.0f, 0.0f));
 		//objectShader.setVar("dLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 
-		////SpotLight:
-		//objectShader.setVar("sLight.position", camera.getCameraPos());
-		//objectShader.setVar("sLight.spotDirection", camera.getCameraFront());
-		//objectShader.setVar("sLight.innerCutoff", cosf(glm::radians(12.0f)));
-		//objectShader.setVar("sLight.outerCutoff", cosf(glm::radians(17.0f)));
-
-		//objectShader.setVar("sLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-		//objectShader.setVar("sLight.diffuse", glm::vec3(0.0f, 0.4f, 0.0f));
-		//objectShader.setVar("sLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-		////NOTE: 50 units range point light
-		//objectShader.setVar("sLight.c", 1.0f);
-		//objectShader.setVar("sLight.l", 0.045f);
-		//objectShader.setVar("sLight.q", 0.0075f);
-
-		////PointLight 0:
-		//objectShader.setVar("pLight[0].ambient",  ambientLightIntensity );
-		//objectShader.setVar("pLight[0].diffuse",  diffuseLightIntensity );
-		//objectShader.setVar("pLight[0].specular", specularLightIntensity);
-		//objectShader.setVar("pLight[0].position", pointLightPositions[0]);
-		////NOTE: 50 units range point light
-		//objectShader.setVar("pLight[0].c", c);
-		//objectShader.setVar("pLight[0].l", l);
-		//objectShader.setVar("pLight[0].q", q);
-		//
-		////PointLight 1:
-		//objectShader.setVar("pLight[1].ambient", ambientLightIntensity);
-		//objectShader.setVar("pLight[1].diffuse", diffuseLightIntensity);
-		//objectShader.setVar("pLight[1].specular", specularLightIntensity);
-		//objectShader.setVar("pLight[1].position", pointLightPositions[1]);
-		////NOTE: 50 units range point light
-		//objectShader.setVar("pLight[1].c", c);
-		//objectShader.setVar("pLight[1].l", l);
-		//objectShader.setVar("pLight[1].q", q);
-
-		////PointLight 2:
-		//objectShader.setVar("pLight[2].ambient", ambientLightIntensity);
-		//objectShader.setVar("pLight[2].diffuse", diffuseLightIntensity);
-		//objectShader.setVar("pLight[2].specular", specularLightIntensity);
-		//objectShader.setVar("pLight[2].position", pointLightPositions[2]);
-		////NOTE: 50 units range point light
-		//objectShader.setVar("pLight[2].c", c);
-		//objectShader.setVar("pLight[2].l", l);
-		//objectShader.setVar("pLight[2].q", q);
-
-		////PointLight 3:
-		//objectShader.setVar("pLight[3].ambient", ambientLightIntensity);
-		//objectShader.setVar("pLight[3].diffuse", diffuseLightIntensity);
-		//objectShader.setVar("pLight[3].specular", specularLightIntensity);
-		//objectShader.setVar("pLight[3].position", pointLightPositions[3]);
-		////NOTE: 50 units range point light
-		//objectShader.setVar("pLight[3].c", c);
-		//objectShader.setVar("pLight[3].l", l);
-		//objectShader.setVar("pLight[3].q", q);
+		
+		
 
 
 		//glBindVertexArray(objectVAO);
@@ -457,31 +512,31 @@ int main()
 		//glBindVertexArray(0);
 
 
-		//lightShader.use();
-		//glBindVertexArray(lightVAO);
-		//
-		//for(int i = 0; i < 4; ++i)
-		//{
-		//	glm::mat4 projection = camera.getProjectionMatrix();
-		//	unsigned int perspLoc = glGetUniformLocation(lightShader.GetID(), "projection");
-		//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		//
-		//	glm::mat4 view = camera.getViewMatrix();
-		//	unsigned int viewLoc = glGetUniformLocation(lightShader.GetID(), "view");
-		//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		//
-		//	glm::mat4 lightModel = glm::mat4(1.0f);
-		//	//lightModel = glm::rotate(lightModel, glm::radians(0.1f * (float)glfwGetTime()), glm::vec3(0.0f, 0.0f, 0.0f));
-		//	lightModel = glm::translate(lightModel, pointLightPositions[i]);
-		//	lightModel = glm::scale(lightModel, glm::vec3(0.2f, 0.2f, 0.2f));
-		//	unsigned int modelLoc = glGetUniformLocation(lightShader.GetID(), "model");
-		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
-		//	
-		//	glDrawArrays(GL_TRIANGLES, 0, 36);
-		//	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//}
+		lightShader.use();
+		glBindVertexArray(lightVAO);
+		
+		for(int i = 0; i < 1; ++i)
+		{
+			glm::mat4 projection = camera.getProjectionMatrix();
+			unsigned int perspLoc = glGetUniformLocation(lightShader.GetID(), "projection");
+			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		
+			glm::mat4 view = camera.getViewMatrix();
+			unsigned int viewLoc = glGetUniformLocation(lightShader.GetID(), "view");
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		
+			glm::mat4 lightModel = glm::mat4(1.0f);
+			//lightModel = glm::rotate(lightModel, glm::radians(0.1f * (float)glfwGetTime()), glm::vec3(0.0f, 0.0f, 0.0f));
+			lightModel = glm::translate(lightModel, pointLightPositions[i]);
+			lightModel = glm::scale(lightModel, glm::vec3(0.2f, 0.2f, 0.2f));
+			unsigned int modelLoc = glGetUniformLocation(lightShader.GetID(), "model");
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
+			
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		}
 
-		//glBindVertexArray(0);
+		glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

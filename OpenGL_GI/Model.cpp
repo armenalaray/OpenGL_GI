@@ -72,10 +72,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			//NOTE: we are adding fake texture coordinates!!!
 			v.tC = glm::vec2(0, 0);
 		}
-		if (v.p.z > 1)
-		{
-			int x = 5;
-		}
+
 		vertices.push_back(v);
 	}
 
@@ -137,13 +134,19 @@ unsigned int Model::LoadTexture(const char* texFileName_, string path)
 	{
 		unsigned int id;
 		glGenTextures(1, &id);
+		glCheckError();
 		glBindTexture(GL_TEXTURE_2D, id);
+		glCheckError();
 
 		//set the texture wrapping/filtering options (on the currently bound texture object)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glCheckError();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glCheckError();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glCheckError();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glCheckError();
 
 		GLenum dataFormat;
 		switch (chaCount)
@@ -163,10 +166,13 @@ unsigned int Model::LoadTexture(const char* texFileName_, string path)
 		}
 
 		glTexImage2D(GL_TEXTURE_2D, 0, dataFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+		glCheckError();
 		glGenerateMipmap(GL_TEXTURE_2D);
+		glCheckError();
 
 		std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glCheckError();
 		stbi_image_free(data);
 
 		return id;

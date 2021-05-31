@@ -26,6 +26,8 @@ Camera::Camera(int viewPortWidth_, int viewPortHeight_)
 	firstMouse = true;
 
 	fov = 45.0f;
+	nearPlane = 0.1f;
+	farPlane = 1000.0f;
 }
 
 
@@ -89,6 +91,16 @@ glm::vec3 Camera::getCameraFront()
 	return cameraFront;
 }
 
+float Camera::getNearPlane()
+{
+	return nearPlane;
+}
+
+float Camera::getFarPlane()
+{
+	return farPlane;
+}
+
 void Camera::scroll(double xOffset, double yOffset)
 {
 	if(activeFocus)
@@ -118,7 +130,7 @@ void Camera::move(GLFWwindow* window)
 glm::mat4 Camera::getProjectionMatrix()
 {
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(fov), (float)viewPortWidth / (float)viewPortHeight, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(fov), (float)viewPortWidth / (float)viewPortHeight, nearPlane, farPlane);
 	return projection;
 }
 

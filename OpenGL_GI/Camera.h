@@ -21,7 +21,8 @@ public:
 	void setFirstMouse(bool value);
 	glm::vec3 getCameraPos();
 	glm::vec3 getCameraFront();
-
+	float getNearPlane();
+	float getFarPlane();
 private:
 	
 	int viewPortWidth;
@@ -34,12 +35,14 @@ private:
 	glm::vec3 camY;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraRight;
-	float cameraSpeed = 12.5f;
+	float cameraSpeed = 20.0f;
 	float lastMouseXP;
 	float lastMouseYP;
 	float yaw;
 	float pitch;
 	bool firstMouse;
 	float fov;
+	float nearPlane;
+	float farPlane;
 };
 

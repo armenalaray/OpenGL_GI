@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 #include "Shader.h"
+#include "Utility.h"
+
 using namespace std;
 
 enum Tex_Type : unsigned int
@@ -40,6 +42,8 @@ class Mesh
 {
 public:
 	Mesh(vector<Vertex> vertices, vector<Texture> textures, vector<unsigned int> indices);
+	Mesh(const Mesh& other);
+	Mesh operator=(const Mesh& other);
 	~Mesh();
 	void Draw(Shader& shader);
 private:

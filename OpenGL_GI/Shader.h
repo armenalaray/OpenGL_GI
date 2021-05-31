@@ -12,6 +12,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "Utility.h"
+
 class Shader
 {
 public:

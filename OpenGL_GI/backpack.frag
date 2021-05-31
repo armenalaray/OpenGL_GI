@@ -14,7 +14,7 @@ uniform Material mat;
 out vec4 FragColor;
 void main()
 {
-	//FragColor.rgb = texture(mat.texDiff_0, texCoord).rgb;
-	//FragColor.a = 1.0;
-	FragColor = vec4(1.0);
+	FragColor.rgb = texture(mat.texDiff_0, texCoord).rgb;
+	FragColor.a = 1.0;
+	//FragColor = vec4(1.0);
 }
