@@ -161,10 +161,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="backpack.frag" />
+    <None Include="Floor.frag" />
     <None Include="Light.frag" />
     <None Include="Light.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
+    <None Include="OutlineObject.frag" />
+    <None Include="Window.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

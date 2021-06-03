@@ -79,7 +79,7 @@ vec3 calcDirectionalLightComp(Directional_Light light)
 	float specular = pow(max(dot(viewDir,refDir),0.0),mat.shininess);
 	
 	vec4 texDiffuse = texture(mat.texDiff_0, texCoord);
-	if(texDiffuse.a < 0.5)
+	if(texDiffuse.a < 0.1)
 	{
 		discard;
 	}
@@ -180,15 +180,16 @@ uniform float far;
 
 void main()
 {
-	vec3 res = vec3(0);
-	res += calcDirectionalLightComp(dLight);
+	//vec3 res = vec3(0);
+	//res += calcDirectionalLightComp(dLight);
 	//for(int i = 0; i < POINT_LIGHT_COUNT; ++i)
 	//{
 	//	res += calcPointLightComp(pLight[i]);
 	//}
 	//res += calcSpotLightComp(sLight);
-	FragColor = vec4(res,1.0);
+	//FragColor = vec4(res,1.0);
 	
+	FragColor = texture(mat.texDiff_0, texCoord);
 
 	//FragColor = vec4(vec3(gl_FragCoord.z),1.0);
 	//float depth = gl_FragCoord.z;

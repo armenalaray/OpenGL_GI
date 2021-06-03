@@ -79,5 +79,14 @@
     <None Include="backpack.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="OutlineObject.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Floor.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Window.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
