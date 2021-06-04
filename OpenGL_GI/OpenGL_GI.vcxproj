@@ -162,6 +162,8 @@
   <ItemGroup>
     <None Include="backpack.frag" />
     <None Include="Floor.frag" />
+    <None Include="FrameBufferQuad.frag" />
+    <None Include="FrameBufferQuad.vert" />
     <None Include="Light.frag" />
     <None Include="Light.vert" />
     <None Include="Object.frag" />

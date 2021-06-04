@@ -88,5 +88,11 @@
     <None Include="Window.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="FrameBufferQuad.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="FrameBufferQuad.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
