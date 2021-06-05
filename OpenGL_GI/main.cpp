@@ -52,6 +52,14 @@ We can use GL_TEXTURE0 + 8 for example.
 define material properties specific to each surface!!!
 */
 
+struct FrameBuffer
+{
+	unsigned int id;
+	unsigned int texColorBufferID;
+	unsigned int renderBuffDepthStencilBufferID;
+};
+
+
 int viewPortWidth = 800;
 int viewPortHeight = 600;
 
@@ -92,6 +100,9 @@ glm::vec3 specularLightIntensity = glm::vec3(1.0f, 1.0f, 1.0f);
 float c = 1.0f;
 float l = 0.09f;
 float q = 0.032f;;
+
+
+FrameBuffer fb = {};
 
 //void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 //{
@@ -134,6 +145,61 @@ float q = 0.032f;;
 //	std::cout << std::endl;
 //}
 
+void CreateFrameBuffer(int width, int height)
+{
+	//FrameBuffer creation!
+
+	glGenFramebuffers(1, &fb.id);
+	glCheckError();
+	glBindFramebuffer(GL_FRAMEBUFFER, fb.id);
+	glCheckError();
+
+	glGenTextures(1, &fb.texColorBufferID);
+	glCheckError();
+	glBindTexture(GL_TEXTURE_2D, fb.texColorBufferID);
+	glCheckError();
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glCheckError();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glCheckError();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glCheckError();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glCheckError();
+
+	glGenRenderbuffers(1, &fb.renderBuffDepthStencilBufferID);
+	glCheckError();
+	glBindRenderbuffer(GL_RENDERBUFFER, fb.renderBuffDepthStencilBufferID);
+	glCheckError();
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glCheckError();
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glCheckError();
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texColorBufferID, 0);
+	glCheckError();
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb.renderBuffDepthStencilBufferID);
+	glCheckError();
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	else
+		std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glCheckError();
+}
+
+void DeleteFrameBuffer()
+{
+	glDeleteBuffers(1, &fb.texColorBufferID);
+	glCheckError();
+	glDeleteBuffers(1, &fb.renderBuffDepthStencilBufferID);
+	glCheckError();
+	glDeleteFramebuffers(1, &fb.id);
+	glCheckError();
+}
+
 extern float calcDeltaTime()
 {
 	currentFrame = (float)glfwGetTime();
@@ -145,6 +211,8 @@ extern float calcDeltaTime()
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
+	//DeleteFrameBuffer();
+	//CreateFrameBuffer(width, height);
 }
 
 //NOTE: xpos and ypos are screen pixel coordinates. 800 width * 600 height.
@@ -484,6 +552,7 @@ unsigned int loadTexture(char const* path)
 	return textureID;
 }
 
+
 int main()
 {
 	calcDeltaTime();
@@ -542,16 +611,18 @@ int main()
 	//	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	//}
 
-	//Shader objectShader("Object.vert", "Object.frag");
+	Shader objectShader("Object.vert", "Object.frag");
 	//Shader lightShader("Light.vert", "Light.frag");
 	//Shader lightOutlineShader("Light.vert", "OutlineObject.frag");
+
 	Shader windowShader("Object.vert", "Window.frag");
 	Shader floorShader("Object.vert", "Floor.frag");
 	Shader frameBufferShader("FrameBufferQuad.vert", "FrameBufferQuad.frag");
+	Shader skyBoxShader("CubeMap.vert", "CubeMap.frag");
 
 	//Shader shader("Object.vert", "Window.frag");
 
-	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
+	Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
 	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 	float cubeVertices[] = {
@@ -700,50 +771,105 @@ int main()
 
 	glBindVertexArray(0);
 
-	//FrameBuffer creation!
+	CreateFrameBuffer(viewPortWidth, viewPortHeight);
+	unsigned int frameBuffer = fb.id;
+	unsigned int texColorBuffer = fb.texColorBufferID;
 
-	unsigned int frameBuffer;
-	glGenFramebuffers(1, &frameBuffer);
-	glCheckError();
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glCheckError();
+	//SKYBOX
 
-	unsigned int texColorBuffer;
-	glGenTextures(1, &texColorBuffer);
-	glCheckError();
-	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-	glCheckError();
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewPortWidth, viewPortHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glCheckError();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glCheckError();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glCheckError();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glCheckError();
+	float skyboxVertices[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
 
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glCheckError();
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glCheckError();
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, viewPortWidth, viewPortHeight);
-	glCheckError();
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glCheckError();
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-	glCheckError();
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-	glCheckError();
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	else
-		std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
-		
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glCheckError();
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+
+	//NOTE: We don´t need texture coordinates for sky box since each vertex position is interoplated and that's the direction vector we need!!!
+	unsigned int skyBoxVao;
+	glGenVertexArrays(1, &skyBoxVao);
+	glBindVertexArray(skyBoxVao);
+	unsigned int skyBoxVbo;
+	glGenBuffers(1, &skyBoxVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, skyBoxVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	std::vector<std::string> cubeMapPaths;
+	cubeMapPaths.push_back("Source\\Textures\\skybox\\right.jpg");
+	cubeMapPaths.push_back("Source\\Textures\\skybox\\left.jpg");
+	cubeMapPaths.push_back("Source\\Textures\\skybox\\top.jpg");
+	cubeMapPaths.push_back("Source\\Textures\\skybox\\bottom.jpg");
+	cubeMapPaths.push_back("Source\\Textures\\skybox\\front.jpg");
+	cubeMapPaths.push_back("Source\\Textures\\skybox\\back.jpg");
+
+	unsigned int cubeMap;
+	glGenTextures(1, &cubeMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+	unsigned int i = 0;
+	for (std::string path : cubeMapPaths)
+	{
+		int width, height, chaCount;
+		unsigned char* imgData;
+		imgData = stbi_load(path.c_str(), &width, &height, &chaCount, 0);
+		if (imgData)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
+			std::cout << "LOADING TEXTURE SUCCESS at path: " << path << std::endl;
+			stbi_image_free(imgData);
+		}
+		else
+		{
+			std::cout << "ERROR::LOADING TEXTURE at path: " << path << std::endl;
+		}
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+
 
 	// transparent window locations
 	// --------------------------------
@@ -776,42 +902,35 @@ int main()
 	windowPs.push_back(glm::vec3(0.0f, 0.0f, 15.0f));
 	windowPs.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
 
-	
-	
+
+
 
 	while (!glfwWindowShouldClose(window))
 	{
 		process_input(window);
-		//RenderOutlinedCube(objectShader, lightShader, lightOutlineShader, lightVAO, bpModel);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glCheckError();
 		glEnable(GL_DEPTH_TEST);
 		glCheckError();
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		//glCheckError();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glCheckError();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glCheckError();
-		
-		//PLANE
-		
+
 		{
-			floorShader.use();
-			floorShader.setVar("t0", 0);
-			glBindVertexArray(planeVao);
-			glCheckError();
-			glActiveTexture(GL_TEXTURE0);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, floorTexture);
-			glCheckError();
+			objectShader.use();
+
 			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(floorShader.GetID(), "projection");
+			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
 			glCheckError();
 			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
 			glCheckError();
 
 			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(floorShader.GetID(), "view");
+			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
 			glCheckError();
 			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 			glCheckError();
@@ -819,134 +938,158 @@ int main()
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(0, 0, -5.0f));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			//model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
 			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-			unsigned int modelLoc = glGetUniformLocation(floorShader.GetID(), "model");
+			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
 			glCheckError();
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			glCheckError();
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			bpModel.Draw(objectShader);
+		}
+
+		{
+			glDepthFunc(GL_LEQUAL);
+			skyBoxShader.use();
+			skyBoxShader.setVar("cubeMap", 0);
+			glm::mat4 projection = camera.getProjectionMatrix();
+			unsigned int perspLoc = glGetUniformLocation(skyBoxShader.GetID(), "projection");
+			glCheckError();
+			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
 			glCheckError();
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+			glm::mat4 view = camera.getViewMatrix();
+			view = glm::mat4(glm::mat3(view));
+			unsigned int viewLoc = glGetUniformLocation(skyBoxShader.GetID(), "view");
+			glCheckError();
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glCheckError();
+
+			glBindVertexArray(skyBoxVao);
+			glCheckError();
+			glActiveTexture(GL_TEXTURE0);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+			glCheckError();
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 			glCheckError();
 			glBindVertexArray(0);
 			glCheckError();
-
+			glDepthFunc(GL_LESS);
 		}
-		
-		//std::map<float, glm::vec3, std::greater<float>> sorted;
-		//for (unsigned int i = 0; i < windowPs.size(); i++)
-		//{
-		//	float dist = glm::length(windowPs[i] - camera.getCameraPos());
-		//	sorted[dist] = windowPs[i];
-		//}
-
-		//{
-		//	windowShader.use();
-		//	windowShader.setVar("t0", 0);
-		//	glBindVertexArray(transparentVao);
-		//	glCheckError();	
-		//	glActiveTexture(GL_TEXTURE0);
-		//	glCheckError();
-		//	glBindTexture(GL_TEXTURE_2D, transparentTexture);
-		//	glCheckError();
-		//	glm::mat4 projection = camera.getProjectionMatrix();
-		//	unsigned int perspLoc = glGetUniformLocation(windowShader.GetID(), "projection");
-		//	glCheckError();
-		//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		//	glCheckError();
-		//
-		//	glm::mat4 view = camera.getViewMatrix();
-		//	unsigned int viewLoc = glGetUniformLocation(windowShader.GetID(), "view");
-		//	glCheckError();
-		//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		//	glCheckError();
-		//
-		//	for(std::map<float,glm::vec3, std::greater<float>>::iterator it=sorted.begin(); it != sorted.end(); ++it)
-		//	{
-		//		glm::mat4 model = glm::mat4(1.0f);
-		//		model = glm::translate(model, it->second);
-		//		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		//		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-		//		unsigned int modelLoc = glGetUniformLocation(windowShader.GetID(), "model");
-		//		glCheckError();
-		//		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//		glCheckError();
-		//
-		//		glDrawArrays(GL_TRIANGLES, 0, 6);
-		//		glCheckError();
-		//
-		//	}
-		//
-		//	
-		//	glBindTexture(GL_TEXTURE_2D, 0);
-		//	glCheckError();
-		//
-		//	//glDisable(GL_BLEND);
-		//	//glCheckError();
-		//
-		//	glBindVertexArray(0);
-		//	glCheckError();
-		//
-		//}
-
-
 		//2nd pass render FrameBufferQuad
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glCheckError();
-		glDisable(GL_DEPTH_TEST);
-		glCheckError();
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glCheckError();
-		glClear(GL_COLOR_BUFFER_BIT);
-		glCheckError();
-		
-		frameBufferShader.use();
-		glBindVertexArray(FrameBufferQuadVao);
-		glCheckError();
-		
-		frameBufferShader.setVar("screenTexture", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glCheckError();
-		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-		glCheckError();
-		
-		glm::mat4 projection = camera.getProjectionMatrix();
-		unsigned int perspLoc = glGetUniformLocation(frameBufferShader.GetID(), "projection");
-		glCheckError();
-		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		glCheckError();
-		
-		glm::mat4 view = camera.getViewMatrix();
-		unsigned int viewLoc = glGetUniformLocation(frameBufferShader.GetID(), "view");
-		glCheckError();
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glCheckError();
-		
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0, 0, -5.0f));
-		model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
-		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-		unsigned int modelLoc = glGetUniformLocation(frameBufferShader.GetID(), "model");
-		glCheckError();
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glCheckError();
-		
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glCheckError();
-		glBindVertexArray(0);
-		glCheckError();
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glCheckError();
+		//glDisable(GL_DEPTH_TEST);
+		//glCheckError();
+		////glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		////glCheckError();
+		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		//glCheckError();
+		//glClear(GL_COLOR_BUFFER_BIT);
+		//glCheckError();
+
+		//frameBufferShader.use();
+		//glBindVertexArray(FrameBufferQuadVao);
+		//glCheckError();
+
+		//frameBufferShader.setVar("screenTexture", 0);
+		//glActiveTexture(GL_TEXTURE0);
+		//glCheckError();
+		//glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+		//glCheckError();
+
+		//glm::mat4 projection = camera.getProjectionMatrix();
+		//unsigned int perspLoc = glGetUniformLocation(frameBufferShader.GetID(), "projection");
+		//glCheckError();
+		//glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		//glCheckError();
+
+		//glm::mat4 view = camera.getViewMatrix();
+		//unsigned int viewLoc = glGetUniformLocation(frameBufferShader.GetID(), "view");
+		//glCheckError();
+		//glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		//glCheckError();
+
+		//glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(0, 0, -5.0f));
+		//model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		////model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		//unsigned int modelLoc = glGetUniformLocation(frameBufferShader.GetID(), "model");
+		//glCheckError();
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//glCheckError();
+
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glCheckError();
+		//glBindVertexArray(0);
+		//glCheckError();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-
-	glDeleteFramebuffers(1, &frameBuffer);
+	DeleteFrameBuffer();
 
 	glfwTerminate();
 	return 0;
 }
 
+//std::map<float, glm::vec3, std::greater<float>> sorted;
+//for (unsigned int i = 0; i < windowPs.size(); i++)
+//{
+//	float dist = glm::length(windowPs[i] - camera.getCameraPos());
+//	sorted[dist] = windowPs[i];
+//}
+
+//{
+//	windowShader.use();
+//	windowShader.setVar("t0", 0);
+//	glBindVertexArray(transparentVao);
+//	glCheckError();	
+//	glActiveTexture(GL_TEXTURE0);
+//	glCheckError();
+//	glBindTexture(GL_TEXTURE_2D, transparentTexture);
+//	glCheckError();
+//	glm::mat4 projection = camera.getProjectionMatrix();
+//	unsigned int perspLoc = glGetUniformLocation(windowShader.GetID(), "projection");
+//	glCheckError();
+//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+//	glCheckError();
+//
+//	glm::mat4 view = camera.getViewMatrix();
+//	unsigned int viewLoc = glGetUniformLocation(windowShader.GetID(), "view");
+//	glCheckError();
+//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+//	glCheckError();
+//
+//	for(std::map<float,glm::vec3, std::greater<float>>::iterator it=sorted.begin(); it != sorted.end(); ++it)
+//	{
+//		glm::mat4 model = glm::mat4(1.0f);
+//		model = glm::translate(model, it->second);
+//		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+//		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+//		unsigned int modelLoc = glGetUniformLocation(windowShader.GetID(), "model");
+//		glCheckError();
+//		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+//		glCheckError();
+//
+//		glDrawArrays(GL_TRIANGLES, 0, 6);
+//		glCheckError();
+//
+//	}
+//
+//	
+//	glBindTexture(GL_TEXTURE_2D, 0);
+//	glCheckError();
+//
+//	//glDisable(GL_BLEND);
+//	//glCheckError();
+//
+//	glBindVertexArray(0);
+//	glCheckError();
+//
+//}

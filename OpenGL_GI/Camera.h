@@ -35,7 +35,7 @@ private:
 	glm::vec3 camY;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraRight;
-	float cameraSpeed = 20.0f;
+	float cameraSpeed = 10.0f;
 	//float cameraSpeed = 10.0f;
 	float lastMouseXP;
 	float lastMouseYP;
