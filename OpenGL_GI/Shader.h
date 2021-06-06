@@ -22,6 +22,7 @@ public:
 	void use();
 	void setVar(const char* varName, bool value);
 	void setVar(const char* varName, int value);
+	void setVar(const char* varName, unsigned int value);
 	void setVar(const char* varName, float value);
 	void setVar(const char* varName, glm::vec3 v0);
 	void setVar(const char* varName, glm::vec4 v0);

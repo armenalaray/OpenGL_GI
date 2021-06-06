@@ -11,9 +11,7 @@ uniform mat4 projection;
 
 //out vec3 ourColor;
 out vec2 texCoord;
-
-//out vec3 normal;
-
+out vec3 normal;
 out vec3 objectPos;
 
 void main()
@@ -22,7 +20,7 @@ void main()
 	//gl_Position = vec4(aPos,1.0f);
 	//this is wrong we need to pass the normal in world space not in object space.
 	//NORMALS CORRECT!!
-	//normal = transpose(inverse(mat3(model))) * aNormal;
+	normal = transpose(inverse(mat3(model))) * aNormal;
 	//normal = mat3(transpose(inverse(model))) * aNormal;
 	objectPos = vec3(model * vec4(aPos,1.0));
 

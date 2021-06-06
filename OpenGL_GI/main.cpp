@@ -210,7 +210,9 @@ extern float calcDeltaTime()
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
+	viewPortHeight = height;
+	viewPortWidth = width;
+	glViewport(0, 0, viewPortWidth, viewPortHeight);
 	//DeleteFrameBuffer();
 	//CreateFrameBuffer(width, height);
 }
@@ -902,7 +904,7 @@ int main()
 	windowPs.push_back(glm::vec3(0.0f, 0.0f, 15.0f));
 	windowPs.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
 
-
+	glEnable(GL_PROGRAM_POINT_SIZE);
 
 
 	while (!glfwWindowShouldClose(window))
@@ -922,6 +924,14 @@ int main()
 
 		{
 			objectShader.use();
+			objectShader.setVar("viewPos",camera.getCameraPos());
+			objectShader.setVar("viewPortHalfWidth",(int)(viewPortWidth * 0.5f));
+			objectShader.setVar("skyBox",0);
+
+			glActiveTexture(GL_TEXTURE0);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+			glCheckError();
 
 			glm::mat4 projection = camera.getProjectionMatrix();
 			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
@@ -946,6 +956,8 @@ int main()
 			glCheckError();
 
 			bpModel.Draw(objectShader);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+			glCheckError();
 		}
 
 		{

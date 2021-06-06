@@ -1,5 +1,6 @@
 #version 330 core
 
+//TODO: Make a preprocessor to have .h files!!!
 struct Material
 {
 	sampler2D texDiff_0;
@@ -54,11 +55,19 @@ in vec3 normal;
 
 uniform vec3 viewPos;
 uniform Material mat;
+uniform samplerCube skyBox;
+uniform int viewPortHalfWidth;
 
 uniform Directional_Light dLight;
 #define POINT_LIGHT_COUNT 1
 uniform Point_Light pLight[POINT_LIGHT_COUNT];
 uniform Spot_Light sLight;
+
+
+uniform float near;
+uniform float far;
+
+
 
 
 vec3 calcDirectionalLightComp(Directional_Light light)
@@ -175,8 +184,13 @@ vec3 calcSpotLightComp(Spot_Light light)
 	return  result;
 }
 
-uniform float near;
-uniform float far;
+vec4 Reflect()
+{
+	vec3 I = normalize(objectPos - viewPos);
+	vec3 R = reflect(I,normalize(normal));
+	vec4 texColor = texture(skyBox, R);
+	return texColor;
+}
 
 void main()
 {
@@ -189,7 +203,24 @@ void main()
 	//res += calcSpotLightComp(sLight);
 	//FragColor = vec4(res,1.0);
 	
-	FragColor = texture(mat.texDiff_0, texCoord);
+	
+	
+	if(gl_FragCoord.x < viewPortHalfWidth)
+	{
+		FragColor = vec4(Reflect().rgb,1.0);
+	}
+	else
+	{
+		float ratio = 1.0 / 1.52;
+		vec3 I = normalize(objectPos - viewPos);
+		vec3 Refracted = refract(I, normalize(normal), ratio);
+		vec4 texColor = texture(skyBox, Refracted);
+		FragColor = vec4(texColor.rgb,1.0);
+
+	}
+
+
+
 
 	//FragColor = vec4(vec3(gl_FragCoord.z),1.0);
 	//float depth = gl_FragCoord.z;

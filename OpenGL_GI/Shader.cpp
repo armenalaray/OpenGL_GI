@@ -138,6 +138,14 @@ void Shader::setVar(const char* varName, int value)
 	glCheckError();
 }
 
+void Shader::setVar(const char* varName, unsigned int value)
+{
+	int location = glGetUniformLocation(programID, varName);
+	glCheckError();
+	glUniform1ui(location, value);
+	glCheckError();
+}
+
 void Shader::setVar(const char* varName, float value)
 {
 	int location = glGetUniformLocation(programID, varName);

@@ -41,10 +41,12 @@ void Mesh::Draw(Shader& shader)
 	glBindVertexArray(vAO);
 	glCheckError();
 
-	for (unsigned int texUnit = 0; texUnit < textures.size(); ++texUnit)
+	//NOTE: text unit 0 is for cubemap!!!
+	unsigned int texUnit = 1;
+	for (unsigned int texIndex = 0; texIndex < textures.size(); ++texIndex)
 	{
 		string unitString = "";
-		switch (textures[texUnit].type)
+		switch (textures[texIndex].type)
 		{
 		case TEX_TYPE_DIFFUSE:
 		{
@@ -60,7 +62,7 @@ void Mesh::Draw(Shader& shader)
 		shader.setVar(unitString.c_str(), (int)texUnit);
 		glActiveTexture(GL_TEXTURE0 + texUnit);
 		glCheckError();
-		glBindTexture(GL_TEXTURE_2D, textures[texUnit].id);
+		glBindTexture(GL_TEXTURE_2D, textures[texIndex].id);
 		glCheckError();
 	}
 
