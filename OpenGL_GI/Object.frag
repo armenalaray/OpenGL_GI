@@ -1,4 +1,6 @@
 #version 330 core
+//layout (depth_greater) out float gl_FragDepth;
+
 
 //TODO: Make a preprocessor to have .h files!!!
 struct Material
@@ -202,10 +204,15 @@ void main()
 	//}
 	//res += calcSpotLightComp(sLight);
 	//FragColor = vec4(res,1.0);
-	
-	
-	
-	if(gl_FragCoord.x < viewPortHalfWidth)
+
+	//if(gl_FragCoord.x < viewPortHalfWidth)
+
+	//if(gl_FragCoord.z == 0)
+	//{
+	//	gl_FragDepth = 1.0;
+	//}
+
+	if(gl_FrontFacing)
 	{
 		FragColor = vec4(Reflect().rgb,1.0);
 	}
@@ -216,7 +223,6 @@ void main()
 		vec3 Refracted = refract(I, normalize(normal), ratio);
 		vec4 texColor = texture(skyBox, Refracted);
 		FragColor = vec4(texColor.rgb,1.0);
-
 	}
 
 

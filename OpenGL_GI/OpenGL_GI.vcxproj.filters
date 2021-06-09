@@ -100,5 +100,32 @@
     <None Include="CubeMap.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="RedCube.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="RedCube.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="GreenCube.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BlueCube.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="YellowCube.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Test.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="House.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="House.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="House.geom">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

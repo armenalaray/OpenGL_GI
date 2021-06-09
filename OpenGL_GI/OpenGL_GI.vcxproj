@@ -161,17 +161,26 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="backpack.frag" />
+    <None Include="BlueCube.frag" />
     <None Include="CubeMap.frag" />
     <None Include="CubeMap.vert" />
     <None Include="Floor.frag" />
     <None Include="FrameBufferQuad.frag" />
     <None Include="FrameBufferQuad.vert" />
+    <None Include="GreenCube.frag" />
+    <None Include="House.frag" />
+    <None Include="House.geom" />
+    <None Include="House.vert" />
     <None Include="Light.frag" />
     <None Include="Light.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
     <None Include="OutlineObject.frag" />
+    <None Include="RedCube.frag" />
+    <None Include="RedCube.vert" />
+    <None Include="Test.geom" />
     <None Include="Window.frag" />
+    <None Include="YellowCube.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

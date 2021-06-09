@@ -613,18 +613,23 @@ int main()
 	//	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	//}
 
-	Shader objectShader("Object.vert", "Object.frag");
-	//Shader lightShader("Light.vert", "Light.frag");
-	//Shader lightOutlineShader("Light.vert", "OutlineObject.frag");
-
-	Shader windowShader("Object.vert", "Window.frag");
-	Shader floorShader("Object.vert", "Floor.frag");
-	Shader frameBufferShader("FrameBufferQuad.vert", "FrameBufferQuad.frag");
-	Shader skyBoxShader("CubeMap.vert", "CubeMap.frag");
-
+	//Shader objectShader("Object.vert", "Object.frag");
+	////Shader lightShader("Light.vert", "Light.frag");
+	////Shader lightOutlineShader("Light.vert", "OutlineObject.frag");
+	//
+	//Shader windowShader("Object.vert", "Window.frag");
+	//Shader floorShader("Object.vert", "Floor.frag");
+	//Shader frameBufferShader("FrameBufferQuad.vert", "FrameBufferQuad.frag");
+	//Shader skyBoxShader("CubeMap.vert", "CubeMap.frag");
 	//Shader shader("Object.vert", "Window.frag");
 
-	Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
+	//Shader redShader("RedCube.vert", "RedCube.frag");
+	//Shader greenShader("RedCube.vert", "GreenCube.frag");
+	//Shader blueShader("RedCube.vert", "BlueCube.frag");
+	//Shader yellowShader("RedCube.vert", "YellowCube.frag");
+
+	Shader houseShader("House.vert", "House.frag","House.geom");
+	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
 	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 	float cubeVertices[] = {
@@ -872,6 +877,67 @@ int main()
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 
+	// Test Geometry Shader
+	float points[] = {
+	-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
+	 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
+	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
+	-0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
+	};
+
+	unsigned int houseVao;
+	glGenVertexArrays(1, &houseVao);
+	glBindVertexArray(houseVao);
+	
+	unsigned int houseVbo;
+	glGenBuffers(1, &houseVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, houseVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindVertexArray(0);
+
+
+
+	//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
+
+	//unsigned int blockIndexRMatrix = glGetUniformBlockIndex(redShader.GetID(), "Matrices");
+	//glCheckError();
+	//unsigned int blockIndexGMatrix = glGetUniformBlockIndex(greenShader.GetID(), "Matrices");
+	//glCheckError();
+	//unsigned int blockIndexBMatrix = glGetUniformBlockIndex(blueShader.GetID(), "Matrices");
+	//glCheckError();
+	//unsigned int blockIndexYMatrix = glGetUniformBlockIndex(yellowShader.GetID(), "Matrices");
+	//glCheckError();
+
+	//glUniformBlockBinding(redShader.GetID(), blockIndexRMatrix, 0);
+	//glCheckError();
+	//glUniformBlockBinding(greenShader.GetID(), blockIndexGMatrix, 0);
+	//glCheckError();
+	//glUniformBlockBinding(blueShader.GetID(), blockIndexBMatrix, 0);
+	//glCheckError();
+	//glUniformBlockBinding(yellowShader.GetID(), blockIndexYMatrix, 0);
+	//glCheckError();
+
+	//unsigned int uboMatrices;
+	//glGenBuffers(1, &uboMatrices);
+	//glCheckError();
+	//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+	//glCheckError();
+	//glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	//glCheckError();
+	//glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+	//glCheckError();
+	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	//glCheckError();
+
+
+
+
+
 
 	// transparent window locations
 	// --------------------------------
@@ -922,75 +988,155 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glCheckError();
 
-		{
-			objectShader.use();
-			objectShader.setVar("viewPos",camera.getCameraPos());
-			objectShader.setVar("viewPortHalfWidth",(int)(viewPortWidth * 0.5f));
-			objectShader.setVar("skyBox",0);
+		//glm::mat4 projection = camera.getProjectionMatrix();
+		//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		//glCheckError();
+		//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+		//glCheckError();
+		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		//glCheckError();
+		//
+		//
+		//glm::mat4 view = camera.getViewMatrix();
+		//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		//glCheckError();
+		//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+		//glCheckError();
+		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		//glCheckError();
 
-			glActiveTexture(GL_TEXTURE0);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-			glCheckError();
+		houseShader.use();
+		glBindVertexArray(houseVao);
+		glDrawArrays(GL_POINTS, 0, 4);
+		glBindVertexArray(0);
 
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
-			glCheckError();
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-			glCheckError();
 
-			glm::mat4 view = camera.getViewMatrix();
-			unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
-			glCheckError();
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-			glCheckError();
+		//glBindVertexArray(cubeVao);
+		//glCheckError();
+		//{
+		//	redShader.use();
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, glm::vec3(-0.75, 0.75, 0.0f));
+		//	unsigned int modelLoc = glGetUniformLocation(redShader.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glCheckError();
+		//}
+		//
+		//{
+		//	greenShader.use();
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, glm::vec3(0.75, 0.75, 0.0f));
+		//	unsigned int modelLoc = glGetUniformLocation(greenShader.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glCheckError();
+		//}
+		//
+		//
+		//{
+		//	blueShader.use();
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, glm::vec3(-0.75, -0.75, 0.0f));
+		//	unsigned int modelLoc = glGetUniformLocation(blueShader.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glCheckError();
+		//}
+		//
+		//
+		//{
+		//	yellowShader.use();
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, glm::vec3(0.75, -0.75, 0.0f));
+		//	unsigned int modelLoc = glGetUniformLocation(yellowShader.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glCheckError();
+		//}
+		//glBindVertexArray(0);
+		//glCheckError();
+		
 
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0, 0, -5.0f));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-			//model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-			//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-			unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
-			glCheckError();
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glCheckError();
 
-			bpModel.Draw(objectShader);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-			glCheckError();
-		}
 
-		{
-			glDepthFunc(GL_LEQUAL);
-			skyBoxShader.use();
-			skyBoxShader.setVar("cubeMap", 0);
-			glm::mat4 projection = camera.getProjectionMatrix();
-			unsigned int perspLoc = glGetUniformLocation(skyBoxShader.GetID(), "projection");
-			glCheckError();
-			glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
-			glCheckError();
-
-			glm::mat4 view = camera.getViewMatrix();
-			view = glm::mat4(glm::mat3(view));
-			unsigned int viewLoc = glGetUniformLocation(skyBoxShader.GetID(), "view");
-			glCheckError();
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-			glCheckError();
-
-			glBindVertexArray(skyBoxVao);
-			glCheckError();
-			glActiveTexture(GL_TEXTURE0);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-			glCheckError();
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-			glCheckError();
-			glBindVertexArray(0);
-			glCheckError();
-			glDepthFunc(GL_LESS);
-		}
+		//{
+		//	objectShader.use();
+		//	objectShader.setVar("viewPos",camera.getCameraPos());
+		//	objectShader.setVar("viewPortHalfWidth",(int)(viewPortWidth * 0.5f));
+		//	objectShader.setVar("skyBox",0);
+		//
+		//	glActiveTexture(GL_TEXTURE0);
+		//	glCheckError();
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+		//	glCheckError();
+		//
+		//	glm::mat4 projection = camera.getProjectionMatrix();
+		//	unsigned int perspLoc = glGetUniformLocation(objectShader.GetID(), "projection");
+		//	glCheckError();
+		//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		//	glCheckError();
+		//
+		//	glm::mat4 view = camera.getViewMatrix();
+		//	unsigned int viewLoc = glGetUniformLocation(objectShader.GetID(), "view");
+		//	glCheckError();
+		//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		//	glCheckError();
+		//
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, glm::vec3(0, 0, -5.0f));
+		//	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		//	//model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
+		//	//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		//	unsigned int modelLoc = glGetUniformLocation(objectShader.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//
+		//	bpModel.Draw(objectShader);
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		//	glCheckError();
+		//}
+		//
+		//{
+		//	glDepthFunc(GL_LEQUAL);
+		//	skyBoxShader.use();
+		//	skyBoxShader.setVar("cubeMap", 0);
+		//	glm::mat4 projection = camera.getProjectionMatrix();
+		//	unsigned int perspLoc = glGetUniformLocation(skyBoxShader.GetID(), "projection");
+		//	glCheckError();
+		//	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		//	glCheckError();
+		//
+		//	glm::mat4 view = camera.getViewMatrix();
+		//	view = glm::mat4(glm::mat3(view));
+		//	unsigned int viewLoc = glGetUniformLocation(skyBoxShader.GetID(), "view");
+		//	glCheckError();
+		//	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		//	glCheckError();
+		//
+		//	glBindVertexArray(skyBoxVao);
+		//	glCheckError();
+		//	glActiveTexture(GL_TEXTURE0);
+		//	glCheckError();
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+		//	glCheckError();
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glCheckError();
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		//	glCheckError();
+		//	glBindVertexArray(0);
+		//	glCheckError();
+		//	glDepthFunc(GL_LESS);
+		//}
 		//2nd pass render FrameBufferQuad
 
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);

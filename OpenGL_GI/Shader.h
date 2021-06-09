@@ -18,7 +18,7 @@ class Shader
 {
 public:
 	//Reads Shaders files and Constructs shader program
-	Shader(const char* vertexShaderPath, const char* fragmentShaderPath);
+	Shader(const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath = 0);
 	void use();
 	void setVar(const char* varName, bool value);
 	void setVar(const char* varName, int value);

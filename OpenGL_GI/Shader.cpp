@@ -1,94 +1,140 @@
 #include "Shader.h"
 
-Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath)
+Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, const char* geometryShaderPath)
 {
 	std::string vertexShaderSource;
 	std::string fragmentShaderSource;
+	std::string geometryShaderSource;
 
 	std::ifstream vertexShaderFile;
 	std::ifstream fragmentShaderFile;
+	std::ifstream geometryShaderFile;
+
 	//ensure ifstream objects can throw exceptions:
 	vertexShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	fragmentShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	geometryShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 	try
 	{
+		std::stringstream vertexShaderStream, fragmentShaderStream, geometryShaderStream;
+
 		vertexShaderFile.open(vertexShaderPath);
-		fragmentShaderFile.open(fragmentShaderPath);
-		std::stringstream vertexShaderStream, fragmentShaderStream;
-
 		vertexShaderStream << vertexShaderFile.rdbuf();
-		fragmentShaderStream << fragmentShaderFile.rdbuf();
-
 		vertexShaderFile.close();
-		fragmentShaderFile.close();
-
 		vertexShaderSource = vertexShaderStream.str();
+
+		fragmentShaderFile.open(fragmentShaderPath);
+		fragmentShaderStream << fragmentShaderFile.rdbuf();
+		fragmentShaderFile.close();
 		fragmentShaderSource = fragmentShaderStream.str();
+
+		if (geometryShaderPath)
+		{
+			geometryShaderFile.open(geometryShaderPath);
+			geometryShaderStream << geometryShaderFile.rdbuf();
+			geometryShaderFile.close();
+			geometryShaderSource = geometryShaderStream.str();
+		}
+
 	}
 	catch (std::ifstream::failure e)
 	{
 		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 	}
 
-	const char* vss = vertexShaderSource.c_str();
-	const char* fss = fragmentShaderSource.c_str();
 
 	//VERTEX SHADER
-
 	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glCheckError();
-	glShaderSource(vertexShader, 1, &vss, NULL);
-	glCheckError();
-	glCompileShader(vertexShader);
-	glCheckError();
-
-	int verSuccess;
-	char verInfoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &verSuccess);
-	glCheckError();
-	if (!verSuccess)
 	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, verInfoLog);
-		std::cout << "ERROR AT: " << vertexShaderPath << ", COMPILATION_FAILED.\n" << verInfoLog << std::endl;
-	}
-	else
-	{
-		std::cout << vertexShaderPath << " COMPILATION_SUCCESS\n";
-	}
+		const char* vss = vertexShaderSource.c_str();
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glCheckError();
+		glShaderSource(vertexShader, 1, &vss, NULL);
+		glCheckError();
+		glCompileShader(vertexShader);
+		glCheckError();
 
+		int success;
+		char infoLog[512];
+		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+		glCheckError();
+		if (!success)
+		{
+			glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+			std::cout << "ERROR AT: " << vertexShaderPath << ", COMPILATION_FAILED.\n" << infoLog << std::endl;
+		}
+		else
+		{
+			std::cout << vertexShaderPath << " COMPILATION_SUCCESS\n";
+		}
+	}
 
 	//FRAGMENT SHADER
-
 	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glCheckError();
-	glShaderSource(fragmentShader, 1, &fss, NULL);
-	glCheckError();
-	glCompileShader(fragmentShader);
-	glCheckError();
-
-	int fragSuccess;
-	char fragInfoLog[512];
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragSuccess);
-	glCheckError();
-	if (!fragSuccess)
 	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, fragInfoLog);
-		std::cout << "ERROR AT: " << fragmentShaderPath << ", COMPILATION_FAILED.\n" << fragInfoLog << std::endl;
-	}
-	else
-	{
-		std::cout << fragmentShaderPath << " COMPILATION_SUCCESS\n";
+		const char* fss = fragmentShaderSource.c_str();
+
+		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		glCheckError();
+		glShaderSource(fragmentShader, 1, &fss, NULL);
+		glCheckError();
+		glCompileShader(fragmentShader);
+		glCheckError();
+
+		int success;
+		char infoLog[512];
+		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+		glCheckError();
+		if (!success)
+		{
+			glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+			std::cout << "ERROR AT: " << fragmentShaderPath << ", COMPILATION_FAILED.\n" << infoLog << std::endl;
+		}
+		else
+		{
+			std::cout << fragmentShaderPath << " COMPILATION_SUCCESS\n";
+		}
 	}
 
+	//GEOMETRY SHADER
+	unsigned int geometryShader;
+	if (geometryShaderPath)
+	{
+		const char* gss = geometryShaderSource.c_str();
+
+		geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+		glCheckError();
+		glShaderSource(geometryShader, 1, &gss, NULL);
+		glCheckError();
+		glCompileShader(geometryShader);
+		glCheckError();
+
+		int success;
+		char infoLog[512];
+		glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
+		glCheckError();
+		if (!success)
+		{
+			glGetShaderInfoLog(geometryShader, 512, NULL, infoLog);
+			std::cout << "ERROR AT: " << geometryShaderPath << ", COMPILATION_FAILED.\n" << infoLog << std::endl;
+		}
+		else
+		{
+			std::cout << geometryShaderPath << " COMPILATION_SUCCESS\n";
+		}
+	}
 
 	//SHADER PROGRAM
 	programID = glCreateProgram();
 	glCheckError();
 	glAttachShader(programID, vertexShader);
 	glCheckError();
+	if (geometryShaderPath)
+	{
+		glAttachShader(programID, geometryShader);
+		glCheckError();
+	}
 	glAttachShader(programID, fragmentShader);
 	glCheckError();
 	glLinkProgram(programID);
@@ -111,9 +157,13 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath)
 
 	glDeleteShader(vertexShader);
 	glCheckError();
+	if (geometryShaderPath)
+	{
+		glDeleteShader(geometryShader);
+		glCheckError();
+	}
 	glDeleteShader(fragmentShader);
 	glCheckError();
-
 }
 
 void Shader::use()
