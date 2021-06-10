@@ -2,6 +2,7 @@
 
 Model::Model(const string & path)
 {
+	stbi_set_flip_vertically_on_load(true);
 	LoadModel(path);
 }
 
@@ -125,13 +126,10 @@ unsigned int Model::LoadTexture(const char* texFileName_, string path)
 {
 	string texFileName = string(texFileName_);
 	string fileFullPath = path + "\\" + texFileName;
-
-	stbi_set_flip_vertically_on_load(true);
 	
 	int width, height, chaCount;
 	unsigned char* data = stbi_load(fileFullPath.c_str(), &width, &height, &chaCount, 0);
 
-	stbi_set_flip_vertically_on_load(false);
 	if (data)
 	{
 		unsigned int id;

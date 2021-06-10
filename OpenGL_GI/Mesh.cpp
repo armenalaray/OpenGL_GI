@@ -74,8 +74,8 @@ void Mesh::Draw(Shader& shader)
 	glCheckError();
 
 	//NOTE: set default state after drawing
-	//glActiveTexture(GL_TEXTURE0);
-	//glCheckError();
+	glActiveTexture(GL_TEXTURE0);
+	glCheckError();
 }
 
 void Mesh::createGLObjects()

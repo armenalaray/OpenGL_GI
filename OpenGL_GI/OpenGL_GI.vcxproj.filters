@@ -127,5 +127,29 @@
     <None Include="House.geom">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Explode.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Explode.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Explode.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DisplayNormal.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DisplayNormal.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DisplayNormal.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ObjectNormal.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ObjectNormal.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -164,6 +164,12 @@
     <None Include="BlueCube.frag" />
     <None Include="CubeMap.frag" />
     <None Include="CubeMap.vert" />
+    <None Include="DisplayNormal.frag" />
+    <None Include="DisplayNormal.geom" />
+    <None Include="DisplayNormal.vert" />
+    <None Include="Explode.frag" />
+    <None Include="Explode.geom" />
+    <None Include="Explode.vert" />
     <None Include="Floor.frag" />
     <None Include="FrameBufferQuad.frag" />
     <None Include="FrameBufferQuad.vert" />
@@ -175,6 +181,8 @@
     <None Include="Light.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
+    <None Include="ObjectNormal.frag" />
+    <None Include="ObjectNormal.vert" />
     <None Include="OutlineObject.frag" />
     <None Include="RedCube.frag" />
     <None Include="RedCube.vert" />

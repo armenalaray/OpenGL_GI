@@ -2,6 +2,7 @@
 layout (location = 0) in vec2 pIn;
 layout (location = 1) in vec3 colorIn;
 
+
 //interface block
 out VSBLOCK{
 	vec3 color;
