@@ -163,5 +163,11 @@
     <None Include="Asteroid.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Planet.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Planet.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

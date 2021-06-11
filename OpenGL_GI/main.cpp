@@ -273,6 +273,8 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+
 	//Mac OSX needs this!!!!!!!!
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	GLFWwindow* window = glfwCreateWindow(viewPortWidth, viewPortHeight, "OpenGL_GI", NULL, NULL);
@@ -301,6 +303,9 @@ int main()
 
 	// configure global opengl state
 	// -----------------------------
+
+	glEnable(GL_MULTISAMPLE);
+
 	/*glEnable(GL_DEPTH_TEST);
 	glCheckError();
 	glEnable(GL_BLEND);
@@ -327,6 +332,8 @@ int main()
 	//Shader explodeShader("Explode.vert", "Explode.frag", "Explode.geom");
 
 	//Shader quadInstancing("QuadInstancing.vert", "QuadInstancing.frag");
+
+	Shader planetShader("Planet.vert", "Planet.frag");
 	Shader asteroidsShader("Asteroid.vert", "Asteroid.frag");
 
 	stbi_set_flip_vertically_on_load(true);
@@ -546,7 +553,7 @@ int main()
 	//Asteriod model transform matrices!
 	SeedInit();
 
-	const unsigned int asteroidCount = 1000;
+	const unsigned int asteroidCount = 3000;
 	glm::mat4* modelMatrices = new glm::mat4[asteroidCount];
 	glm::vec3 center = glm::vec3(0, -10, -50);
 	glm::vec3 dir = glm::vec3(1, 0, 0);
@@ -576,6 +583,37 @@ int main()
 		model = glm::rotate(model, glm::radians(asteroidAngle), asteroidPivot);
 		modelMatrices[i] = model;
 	}
+
+	unsigned int asteroidModelMatricesVbo;
+	glGenBuffers(1, &asteroidModelMatricesVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, asteroidModelMatricesVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * asteroidCount, &modelMatrices[0], GL_STATIC_DRAW);
+
+	for (unsigned int i = 0; i < rockModel.meshes.size(); ++i)
+	{
+		unsigned int VAO = rockModel.meshes[i].VAO;
+		glBindVertexArray(VAO);
+		//El maximo que puedes poner es 4 flotantes
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+		glEnableVertexAttribArray(3);
+		glVertexAttribDivisor(3, 1);
+
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+		glEnableVertexAttribArray(4);
+		glVertexAttribDivisor(4, 1);
+
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+		glEnableVertexAttribArray(5);
+		glVertexAttribDivisor(5, 1);
+
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+		glEnableVertexAttribArray(6);
+		glVertexAttribDivisor(6, 1);
+
+		glBindVertexArray(0);
+
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
 
@@ -626,17 +664,22 @@ int main()
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glCheckError();
 
-		asteroidsShader.use();
+		planetShader.use();
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, center);
 		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
-		asteroidsShader.setMat4("modelMatrix", model);
-		planetModel.Draw(asteroidsShader);
+		planetShader.setMat4("modelMatrix", model);
+		planetModel.Draw(planetShader);
 
-		for (unsigned int i = 0; i < asteroidCount; i++)
+		asteroidsShader.use();
+		asteroidsShader.setInt("texture_diffuse1", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, rockModel.textures_loaded[0].id);
+		for (unsigned int i = 0; i < rockModel.meshes.size(); i++)
 		{
-			asteroidsShader.setMat4("modelMatrix", modelMatrices[i]);
-			rockModel.Draw(asteroidsShader);
+			glBindVertexArray(rockModel.meshes[i].VAO);
+			glDrawElementsInstanced(GL_TRIANGLES, (GLsizei) rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, asteroidCount);
+			glBindVertexArray(0);
 		}
 
 

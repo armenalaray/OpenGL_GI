@@ -130,6 +130,7 @@ vec3 calcPointLightComp(Point_Light light)
 	vec3 viewDir = normalize(viewPos - objectPos);
 	vec3 refDir = reflect(-lightDir, norm);
 	//NOTE: the power is the shininess of the highlight
+	//NOTE: there is a problem when dot product is negative, specular contribution is zero!!!
 	float specular = pow(max(dot(viewDir,refDir),0.0),mat.shininess);
 	
 	//NOTE: we skip alpha!!!
