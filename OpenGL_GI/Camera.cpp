@@ -134,6 +134,12 @@ glm::mat4 Camera::getProjectionMatrix()
 	return projection;
 }
 
+void Camera::setViewPort(int viewPortWidth, int viewPortHeight)
+{
+	this->viewPortWidth = viewPortWidth;
+	this->viewPortHeight = viewPortHeight;
+}
+
 glm::mat4 Camera::getViewMatrix()
 {
 	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);

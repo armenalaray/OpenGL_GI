@@ -12,6 +12,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
+#include "Utility.h"
 
 /*
 *
@@ -213,6 +214,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	viewPortHeight = height;
 	viewPortWidth = width;
 	glViewport(0, 0, viewPortWidth, viewPortHeight);
+	camera.setViewPort(viewPortWidth, viewPortHeight);
+
 	//DeleteFrameBuffer();
 	//CreateFrameBuffer(width, height);
 }
@@ -319,12 +322,19 @@ int main()
 	//	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	//}
 
-	Shader objectNormal("ObjectNormal.vert", "ObjectNormal.frag");
-	Shader displayNormal("DisplayNormal.vert", "DisplayNormal.frag", "DisplayNormal.geom");
+	//Shader objectNormal("ObjectNormal.vert", "ObjectNormal.frag");
+	//Shader displayNormal("DisplayNormal.vert", "DisplayNormal.frag", "DisplayNormal.geom");
 	//Shader explodeShader("Explode.vert", "Explode.frag", "Explode.geom");
 
+	//Shader quadInstancing("QuadInstancing.vert", "QuadInstancing.frag");
+	Shader asteroidsShader("Asteroid.vert", "Asteroid.frag");
+
+	stbi_set_flip_vertically_on_load(true);
+
 	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
-	Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
+	Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
+	Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
+
 	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 
@@ -478,19 +488,100 @@ int main()
 	//
 	//glBindVertexArray(0);
 
+	float quadVertices[] = {
+		// positions     // colors
+		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+		 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		-0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
 
+		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+		 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		 0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+	};
+
+	glm::vec2 offsets[100];
+	int index = 0;
+	float baseOffset = 0.1f;
+	for (int y = -10; y < 10; y += 2)
+	{
+		for (int x = -10; x < 10; x += 2)
+		{
+			glm::vec2 offset;
+			offset.x = (float)x / 10.0f + baseOffset;
+			offset.y = (float)y / 10.0f + baseOffset;
+			offsets[index++] = offset;
+		}
+	}
+
+
+	unsigned int quadVao;
+	glGenVertexArrays(1, &quadVao);
+	glBindVertexArray(quadVao);
+
+	unsigned int quadVbo;
+	glGenBuffers(1, &quadVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+	unsigned int offsetVbo;
+	glGenBuffers(1, &offsetVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, offsetVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &offsets[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	//NOTE: this is an instanced array!
+	glBindBuffer(GL_ARRAY_BUFFER, offsetVbo);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribDivisor(2, 1);
+
+	glBindVertexArray(0);
+
+	//Asteriod model transform matrices!
+	SeedInit();
+
+	const unsigned int asteroidCount = 1000;
+	glm::mat4* modelMatrices = new glm::mat4[asteroidCount];
+	glm::vec3 center = glm::vec3(0, -10, -50);
+	glm::vec3 dir = glm::vec3(1, 0, 0);
+	glm::vec3 pivot = glm::vec3(0, 1, 0);
+
+	float radius = 100.0f;
+	float offset = 20.0f;
+	float offsetHeight = 10.0f;
+	for (unsigned int i = 0; i < asteroidCount; ++i)
+	{
+		float height = offsetHeight * randMinOneToPlusOne();
+		float r = radius + offset * randMinOneToPlusOne();
+		glm::vec3 p = r * dir + height * pivot;
+		float angle = randZeroToPlusOne() * 360.0f;
+		float asteroidAngle = randZeroToPlusOne() * 360.0f;
+
+		float scaleWidth = randZeroToPlusOne() * 1.0f;
+		
+		glm::vec3 scaleVec = glm::vec3(scaleWidth, scaleWidth, scaleWidth);
+		glm::vec3 asteroidPivot = randomInUnitSphere();
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, center);
+		model = glm::rotate(model, glm::radians(angle), pivot);
+		model = glm::translate(model, p);
+		model = glm::scale(model, scaleVec);
+		model = glm::rotate(model, glm::radians(asteroidAngle), asteroidPivot);
+		modelMatrices[i] = model;
+	}
 
 	//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
 
-	unsigned int bidnMat = glGetUniformBlockIndex(displayNormal.GetID(), "Matrices");
+	unsigned int bidnMat = glGetUniformBlockIndex(asteroidsShader.ID, "Matrices");
 	glCheckError();
-	unsigned int bionMat = glGetUniformBlockIndex(objectNormal.GetID(), "Matrices");
-	glCheckError();
-
-	glUniformBlockBinding(displayNormal.GetID(), bidnMat, 0);
-	glCheckError();
-
-	glUniformBlockBinding(objectNormal.GetID(), bionMat, 0);
+	glUniformBlockBinding(asteroidsShader.ID, bidnMat, 0);
 	glCheckError();
 
 	unsigned int uboMatrices;
@@ -535,28 +626,43 @@ int main()
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glCheckError();
 
+		asteroidsShader.use();
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0, 0.0, -0.5f));
+		model = glm::translate(model, center);
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		asteroidsShader.setMat4("modelMatrix", model);
+		planetModel.Draw(asteroidsShader);
 
+		for (unsigned int i = 0; i < asteroidCount; i++)
 		{
-			objectNormal.use();
-			unsigned int modelLoc = glGetUniformLocation(objectNormal.GetID(), "model");
-			glCheckError();
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glCheckError();
-
-			bpModel.Draw(objectNormal);
+			asteroidsShader.setMat4("modelMatrix", modelMatrices[i]);
+			rockModel.Draw(asteroidsShader);
 		}
 
-		{
-			displayNormal.use();
-			unsigned int modelLoc = glGetUniformLocation(displayNormal.GetID(), "model");
-			glCheckError();
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glCheckError();
 
-			bpModel.Draw(displayNormal);
-		}
+
+		//glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(0.0, 0.0, -0.5f));
+
+		//{
+		//	objectNormal.use();
+		//	unsigned int modelLoc = glGetUniformLocation(objectNormal.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//
+		//	bpModel.Draw(objectNormal);
+		//}
+		//
+		//{
+		//	displayNormal.use();
+		//	unsigned int modelLoc = glGetUniformLocation(displayNormal.GetID(), "model");
+		//	glCheckError();
+		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//	glCheckError();
+		//
+		//	bpModel.Draw(displayNormal);
+		//}
 		//explodeShader.setVar("time", (float)glfwGetTime());
 
 

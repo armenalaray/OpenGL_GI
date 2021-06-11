@@ -151,5 +151,17 @@
     <None Include="ObjectNormal.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="QuadInstancing.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="QuadInstancing.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Asteroid.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Asteroid.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

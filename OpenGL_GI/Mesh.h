@@ -1,56 +1,51 @@
 #pragma once
+#include <glad/glad.h> // holds all OpenGL type declarations
 
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-#include <vector>
-#include <string>
 #include "Shader.h"
-#include "Utility.h"
 
+#include <string>
+#include <vector>
 using namespace std;
 
-enum Tex_Type : unsigned int
-{
-	TEX_TYPE_DIFFUSE, TEX_TYPE_SPECULAR
+struct Vertex {
+	// position
+	glm::vec3 Position;
+	// normal
+	glm::vec3 Normal;
+	// texCoords
+	glm::vec2 TexCoords;
+	// tangent
+	glm::vec3 Tangent;
+	// bitangent
+	glm::vec3 Bitangent;
 };
 
-struct Vertex 
-{
-	Vertex()
-	{
-		p = glm::vec3(0);
-		n = glm::vec3(0);
-		tC = glm::vec3(0);
-	}
-
-	glm::vec3 p;
-	glm::vec3 n;
-	glm::vec2 tC;
-};
-
-struct Texture
-{
+struct Texture {
 	unsigned int id;
-	Tex_Type type;
-	string fullPath;
+	string type;
+	string path;
 };
+
 class Mesh
 {
 public:
-	Mesh(vector<Vertex> vertices, vector<Texture> textures, vector<unsigned int> indices);
-	Mesh(const Mesh& other);
-	Mesh operator=(const Mesh& other);
-	~Mesh();
+	// mesh Data
+	vector<Vertex>       vertices;
+	vector<unsigned int> indices;
+	vector<Texture>      textures;
+	unsigned int VAO;
+
+	// constructor
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+	// render the mesh
 	void Draw(Shader& shader);
 private:
-	void createGLObjects();
-	vector<Vertex> vertices;
-	vector<unsigned int> indices;
-	vector<Texture> textures;
-	unsigned int vAO, vBO, eBO;
+	// render data 
+	unsigned int VBO, EBO;
+	// initializes all the buffer objects/arrays
+	void setupMesh();
 };
 

@@ -1,5 +1,40 @@
 #include "Utility.h"
 
+void SeedInit()
+{
+	srand((unsigned)time(NULL));
+}
+
+float randZeroToPlusOne()
+{
+	// NOTE(Alex): I want a number from 0 <= rand < 1 
+	float Result = (float)rand() / (float)((RAND_MAX)+1);
+	return Result;
+}
+
+float randMinOneToPlusOne()
+{
+	float Result = randZeroToPlusOne() * 2.0f - 1.0f;
+	return Result;
+}
+
+glm::vec3 randInUnitDisc()
+{
+	glm::vec3 Result = glm::vec3(1.0, 0, 0);
+	Result = ((2.0f * glm::vec3(randZeroToPlusOne(), randZeroToPlusOne(), 0.0f)) - glm::vec3(1.0f, 1.0f, 0.0f));
+	Result = glm::normalize(Result);
+	return Result;
+}
+
+glm::vec3 randomInUnitSphere()
+{
+	glm::vec3 Result(1.0, 0, 0);
+	Result = ((2.0f * glm::vec3(randZeroToPlusOne(), randZeroToPlusOne(), randZeroToPlusOne())) - glm::vec3(1.0f, 1.0f, 1.0f));
+	Result = glm::normalize(Result);
+	return Result;
+}
+
+
 GLenum glCheckError_(const char* file, int line)
 {
 	GLenum errorCode;

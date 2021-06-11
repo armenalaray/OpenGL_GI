@@ -16,6 +16,9 @@ public:
 	void scroll(double xOffset, double yOffset);
 	void move(GLFWwindow* window);
 	glm::mat4 getProjectionMatrix();
+	
+	void setViewPort(int viewPortWidth, int viewPortHeight);
+
 	glm::mat4 getViewMatrix();
 	void rotate(double mouseXPD, double mouseYPD);
 	void setFirstMouse(bool value);
@@ -35,7 +38,7 @@ private:
 	glm::vec3 camY;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraRight;
-	float cameraSpeed = 10.0f;
+	float cameraSpeed = 100.0f;
 	//float cameraSpeed = 10.0f;
 	float lastMouseXP;
 	float lastMouseYP;
