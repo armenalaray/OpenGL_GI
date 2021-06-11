@@ -495,6 +495,19 @@ int main()
 	//
 	//glBindVertexArray(0);
 
+	float planeVertices[] = {
+		// positions          // texture Coords 
+		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+		-5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+		 5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+	};
+
+
+
 	float quadVertices[] = {
 		// positions     // colors
 		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
@@ -571,7 +584,7 @@ int main()
 		float asteroidAngle = randZeroToPlusOne() * 360.0f;
 
 		float scaleWidth = randZeroToPlusOne() * 1.0f;
-		
+
 		glm::vec3 scaleVec = glm::vec3(scaleWidth, scaleWidth, scaleWidth);
 		glm::vec3 asteroidPivot = randomInUnitSphere();
 
@@ -678,7 +691,7 @@ int main()
 		for (unsigned int i = 0; i < rockModel.meshes.size(); i++)
 		{
 			glBindVertexArray(rockModel.meshes[i].VAO);
-			glDrawElementsInstanced(GL_TRIANGLES, (GLsizei) rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, asteroidCount);
+			glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, asteroidCount);
 			glBindVertexArray(0);
 		}
 
