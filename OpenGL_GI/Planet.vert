@@ -12,6 +12,7 @@ layout (std140) uniform Matrices
 
 out VSBLOCK
 {
+	vec3 objectPos;
 	vec3 normal;
 	vec2 texCoords;
 }vsOut;
@@ -21,8 +22,10 @@ uniform mat4 modelMatrix;
 void main()
 {
 	vsOut.texCoords = tIn;
+	vsOut.objectPos = pIn;
+
 	//NOTE: no aplicaban la rotación de la vista!!!!
-	mat3 nMatrix = mat3(transpose(inverse(view * modelMatrix)));
+	mat3 nMatrix = mat3(transpose(inverse(modelMatrix)));
 	vsOut.normal = normalize(nMatrix * nIn);
 	gl_Position = projection * view * modelMatrix * vec4(pIn, 1.0);
 }
