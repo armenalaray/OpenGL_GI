@@ -262,6 +262,28 @@ void process_input(GLFWwindow* window)
 	camera.move(window);
 }
 
+void DrawFloor(Shader shader, unsigned int vao, unsigned int tid, glm::mat4 model)
+{
+	shader.use();
+	shader.setInt("viewPortHalfWidth", (int)((float)viewPortWidth * 0.5f));
+	shader.setVec3("viewPos", camera.getCameraPos());
+	shader.setVec3("dLight.direction", glm::vec3(-0.5f, -0.5f, -0.5f));
+	shader.setVec3("dLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+	shader.setVec3("dLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+	shader.setVec3("dLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
+	shader.setInt("mat.texture_diffuse1", 0);
+	shader.setFloat("mat.shininess", 64.0f);
+	shader.setFloat("specularColor", 1.0f);
+
+	shader.setMat4("modelMatrix", model);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tid);
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+}
 
 
 int main()
@@ -292,7 +314,7 @@ int main()
 	}
 
 	activeFocus = true;
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	glfwSetScrollCallback(window, scroll_callback);
 	glViewport(0, 0, 800, 600);
 	/*
@@ -306,6 +328,8 @@ int main()
 
 	glEnable(GL_MULTISAMPLE);
 
+	//NOTE: this will apply gama correction for each framebuffer used, not the last framebuffer only!
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 	/*glEnable(GL_DEPTH_TEST);
 	glCheckError();
 	glEnable(GL_BLEND);
@@ -334,479 +358,479 @@ int main()
 	//Shader quadInstancing("QuadInstancing.vert", "QuadInstancing.frag");
 
 	//Shader asteroidsShader("Asteroid.vert", "Asteroid.frag");
-	Shader lightShader("Planet.vert", "Object.frag");
-
-	stbi_set_flip_vertically_on_load(true);
-
-	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
-	//Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
-	//Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
-
-	//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
-
-
-	//float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-	//	// positions   // texCoords
-	//	-1.0f,  1.0f,  0.0f, 1.0f,
-	//	-1.0f, -1.0f,  0.0f, 0.0f,
-	//	 1.0f, -1.0f,  1.0f, 0.0f,
-	//
-	//	-1.0f,  1.0f,  0.0f, 1.0f,
-	//	 1.0f, -1.0f,  1.0f, 0.0f,
-	//	 1.0f,  1.0f,  1.0f, 1.0f
-	//};
-	//
-	//unsigned int FrameBufferQuadVao;
-	//glGenVertexArrays(1, &FrameBufferQuadVao);
-	//glBindVertexArray(FrameBufferQuadVao);
-	//unsigned int FrameBufferQuadVbo;
-	//glGenBuffers(1, &FrameBufferQuadVbo);
-	//glBindBuffer(GL_ARRAY_BUFFER, FrameBufferQuadVbo);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	//
-	////unsigned int transparentTexture = loadTexture("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Textures\\transparent_window.png");
-	//
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	//
-	//glBindVertexArray(0);
-	//
-	//CreateFrameBuffer(viewPortWidth, viewPortHeight);
-	//unsigned int frameBuffer = fb.id;
-	//unsigned int texColorBuffer = fb.texColorBufferID;
-	//
-	////SKYBOX
-	//
-	//float skyboxVertices[] = {
-	//	// positions          
-	//	-1.0f,  1.0f, -1.0f,
-	//	-1.0f, -1.0f, -1.0f,
-	//	 1.0f, -1.0f, -1.0f,
-	//	 1.0f, -1.0f, -1.0f,
-	//	 1.0f,  1.0f, -1.0f,
-	//	-1.0f,  1.0f, -1.0f,
-	//
-	//	-1.0f, -1.0f,  1.0f,
-	//	-1.0f, -1.0f, -1.0f,
-	//	-1.0f,  1.0f, -1.0f,
-	//	-1.0f,  1.0f, -1.0f,
-	//	-1.0f,  1.0f,  1.0f,
-	//	-1.0f, -1.0f,  1.0f,
-	//
-	//	 1.0f, -1.0f, -1.0f,
-	//	 1.0f, -1.0f,  1.0f,
-	//	 1.0f,  1.0f,  1.0f,
-	//	 1.0f,  1.0f,  1.0f,
-	//	 1.0f,  1.0f, -1.0f,
-	//	 1.0f, -1.0f, -1.0f,
-	//
-	//	-1.0f, -1.0f,  1.0f,
-	//	-1.0f,  1.0f,  1.0f,
-	//	 1.0f,  1.0f,  1.0f,
-	//	 1.0f,  1.0f,  1.0f,
-	//	 1.0f, -1.0f,  1.0f,
-	//	-1.0f, -1.0f,  1.0f,
-	//
-	//	-1.0f,  1.0f, -1.0f,
-	//	 1.0f,  1.0f, -1.0f,
-	//	 1.0f,  1.0f,  1.0f,
-	//	 1.0f,  1.0f,  1.0f,
-	//	-1.0f,  1.0f,  1.0f,
-	//	-1.0f,  1.0f, -1.0f,
-	//
-	//	-1.0f, -1.0f, -1.0f,
-	//	-1.0f, -1.0f,  1.0f,
-	//	 1.0f, -1.0f, -1.0f,
-	//	 1.0f, -1.0f, -1.0f,
-	//	-1.0f, -1.0f,  1.0f,
-	//	 1.0f, -1.0f,  1.0f
-	//};
-	//
-	////NOTE: We don´t need texture coordinates for sky box since each vertex position is interoplated and that's the direction vector we need!!!
-	//unsigned int skyBoxVao;
-	//glGenVertexArrays(1, &skyBoxVao);
-	//glBindVertexArray(skyBoxVao);
-	//unsigned int skyBoxVbo;
-	//glGenBuffers(1, &skyBoxVbo);
-	//glBindBuffer(GL_ARRAY_BUFFER, skyBoxVbo);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glBindVertexArray(0);
-	//
-	//std::vector<std::string> cubeMapPaths;
-	//cubeMapPaths.push_back("Source\\Textures\\skybox\\right.jpg");
-	//cubeMapPaths.push_back("Source\\Textures\\skybox\\left.jpg");
-	//cubeMapPaths.push_back("Source\\Textures\\skybox\\top.jpg");
-	//cubeMapPaths.push_back("Source\\Textures\\skybox\\bottom.jpg");
-	//cubeMapPaths.push_back("Source\\Textures\\skybox\\front.jpg");
-	//cubeMapPaths.push_back("Source\\Textures\\skybox\\back.jpg");
-	//
-	//unsigned int cubeMap;
-	//glGenTextures(1, &cubeMap);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	//unsigned int i = 0;
-	//for (std::string path : cubeMapPaths)
-	//{
-	//	int width, height, chaCount;
-	//	unsigned char* imgData;
-	//	imgData = stbi_load(path.c_str(), &width, &height, &chaCount, 0);
-	//	if (imgData)
-	//	{
-	//		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
-	//		std::cout << "LOADING TEXTURE SUCCESS at path: " << path << std::endl;
-	//		stbi_image_free(imgData);
-	//	}
-	//	else
-	//	{
-	//		std::cout << "ERROR::LOADING TEXTURE at path: " << path << std::endl;
-	//	}
-	//}
-	//
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	//
-	//
-	//// Test Geometry Shader
-	//float points[] = {
-	//-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
-	// 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
-	// 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
-	//-0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
-	//};
-	//
-	//unsigned int houseVao;
-	//glGenVertexArrays(1, &houseVao);
-	//glBindVertexArray(houseVao);
-	//
-	//unsigned int houseVbo;
-	//glGenBuffers(1, &houseVbo);
-	//glBindBuffer(GL_ARRAY_BUFFER, houseVbo);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	//
-	//glBindVertexArray(0);
-
-
-
-
-	//float quadVertices[] = {
-	//	// positions     // colors
-	//	-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-	//	 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-	//	-0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
-	//
-	//	-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-	//	 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-	//	 0.05f,  0.05f,  0.0f, 1.0f, 1.0f
-	//};
-	//
-	//glm::vec2 offsets[100];
-	//int index = 0;
-	//float baseOffset = 0.1f;
-	//for (int y = -10; y < 10; y += 2)
-	//{
-	//	for (int x = -10; x < 10; x += 2)
-	//	{
-	//		glm::vec2 offset;
-	//		offset.x = (float)x / 10.0f + baseOffset;
-	//		offset.y = (float)y / 10.0f + baseOffset;
-	//		offsets[index++] = offset;
-	//	}
-	//}
-	//
-	//
-	//unsigned int quadVao;
-	//glGenVertexArrays(1, &quadVao);
-	//glBindVertexArray(quadVao);
-	//
-	//unsigned int quadVbo;
-	//glGenBuffers(1, &quadVbo);
-	//glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-	//
-	//unsigned int offsetVbo;
-	//glGenBuffers(1, &offsetVbo);
-	//glBindBuffer(GL_ARRAY_BUFFER, offsetVbo);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &offsets[0], GL_STATIC_DRAW);
-	//
-	//glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	//
-	////NOTE: this is an instanced array!
-	//glBindBuffer(GL_ARRAY_BUFFER, offsetVbo);
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(2);
-	//glVertexAttribDivisor(2, 1);
-	//
-	//glBindVertexArray(0);
-	//
-	////Asteriod model transform matrices!
-	//SeedInit();
-	//
-	//const unsigned int asteroidCount = 3000;
-	//glm::mat4* modelMatrices = new glm::mat4[asteroidCount];
-	//glm::vec3 center = glm::vec3(0, -10, -50);
-	//glm::vec3 dir = glm::vec3(1, 0, 0);
-	//glm::vec3 pivot = glm::vec3(0, 1, 0);
-	//
-	//float radius = 100.0f;
-	//float offset = 20.0f;
-	//float offsetHeight = 10.0f;
-	//for (unsigned int i = 0; i < asteroidCount; ++i)
-	//{
-	//	float height = offsetHeight * randMinOneToPlusOne();
-	//	float r = radius + offset * randMinOneToPlusOne();
-	//	glm::vec3 p = r * dir + height * pivot;
-	//	float angle = randZeroToPlusOne() * 360.0f;
-	//	float asteroidAngle = randZeroToPlusOne() * 360.0f;
-	//
-	//	float scaleWidth = randZeroToPlusOne() * 1.0f;
-	//
-	//	glm::vec3 scaleVec = glm::vec3(scaleWidth, scaleWidth, scaleWidth);
-	//	glm::vec3 asteroidPivot = randomInUnitSphere();
-	//
-	//	glm::mat4 model = glm::mat4(1.0f);
-	//	model = glm::translate(model, center);
-	//	model = glm::rotate(model, glm::radians(angle), pivot);
-	//	model = glm::translate(model, p);
-	//	model = glm::scale(model, scaleVec);
-	//	model = glm::rotate(model, glm::radians(asteroidAngle), asteroidPivot);
-	//	modelMatrices[i] = model;
-	//}
-	//
-	//unsigned int asteroidModelMatricesVbo;
-	//glGenBuffers(1, &asteroidModelMatricesVbo);
-	//glBindBuffer(GL_ARRAY_BUFFER, asteroidModelMatricesVbo);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * asteroidCount, &modelMatrices[0], GL_STATIC_DRAW);
-	//
-	//for (unsigned int i = 0; i < rockModel.meshes.size(); ++i)
-	//{
-	//	unsigned int VAO = rockModel.meshes[i].VAO;
-	//	glBindVertexArray(VAO);
-	//	//El maximo que puedes poner es 4 flotantes
-	//	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-	//	glEnableVertexAttribArray(3);
-	//	glVertexAttribDivisor(3, 1);
-	//
-	//	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-	//	glEnableVertexAttribArray(4);
-	//	glVertexAttribDivisor(4, 1);
-	//
-	//	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-	//	glEnableVertexAttribArray(5);
-	//	glVertexAttribDivisor(5, 1);
-	//
-	//	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-	//	glEnableVertexAttribArray(6);
-	//	glVertexAttribDivisor(6, 1);
-	//
-	//	glBindVertexArray(0);
-	//
-	//}
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-
-	//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
-
-	unsigned int bidnMat = glGetUniformBlockIndex(lightShader.ID, "Matrices");
-	glCheckError();
-	glUniformBlockBinding(lightShader.ID, bidnMat, 0);
-	glCheckError();
-
-	unsigned int uboMatrices;
-	glGenBuffers(1, &uboMatrices);
-	glCheckError();
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glCheckError();
-	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-	glCheckError();
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
-	glCheckError();
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	glCheckError();
-
-
-	float planeVertices[] = {
-		-5.5f,  0.5f, -5.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-		 5.5f,  0.5f, -5.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-		 5.5f,  0.5f,  5.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-		 5.5f,  0.5f,  5.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-		-5.5f,  0.5f,  5.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-		-5.5f,  0.5f, -5.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-	};
-
-	unsigned int floorVao;
-	glGenVertexArrays(1, &floorVao);
-	glBindVertexArray(floorVao);
-
-	unsigned int floorVbo;
-	glGenBuffers(1, &floorVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, floorVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	//Texture object generation
-
-	unsigned int texture0ID;
-	glGenTextures(1, &texture0ID);
-	glBindTexture(GL_TEXTURE_2D, texture0ID);
-
-	//set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glCheckError();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glCheckError();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glCheckError();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glCheckError();
-
+	Shader phongShader("Phong.vert", "Phong.frag");
+	Shader blinnPhongShader("BlinnPhong.vert", "BlinnPhong.frag");
+	if (phongShader.isValid && blinnPhongShader.isValid)
 	{
-		int width, height, chaCount;
-		//TODO: Check how we are receiving the data!!!
-		unsigned char* data = stbi_load("Source\\Textures\\wood.png", &width, &height, &chaCount, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glCheckError();
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glCheckError();
-			std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
-		}
-		else
-		{
-			std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
-		}
-		stbi_image_free(data);
-	}
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		stbi_set_flip_vertically_on_load(true);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glCheckError();
+		//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
+		//Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
+		//Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
+
+		//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 
-	while (!glfwWindowShouldClose(window))
-	{
-		process_input(window);
+		//float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		//	// positions   // texCoords
+		//	-1.0f,  1.0f,  0.0f, 1.0f,
+		//	-1.0f, -1.0f,  0.0f, 0.0f,
+		//	 1.0f, -1.0f,  1.0f, 0.0f,
+		//
+		//	-1.0f,  1.0f,  0.0f, 1.0f,
+		//	 1.0f, -1.0f,  1.0f, 0.0f,
+		//	 1.0f,  1.0f,  1.0f, 1.0f
+		//};
+		//
+		//unsigned int FrameBufferQuadVao;
+		//glGenVertexArrays(1, &FrameBufferQuadVao);
+		//glBindVertexArray(FrameBufferQuadVao);
+		//unsigned int FrameBufferQuadVbo;
+		//glGenBuffers(1, &FrameBufferQuadVbo);
+		//glBindBuffer(GL_ARRAY_BUFFER, FrameBufferQuadVbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		//
+		////unsigned int transparentTexture = loadTexture("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Textures\\transparent_window.png");
+		//
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		//glEnableVertexAttribArray(1);
+		//
+		//glBindVertexArray(0);
+		//
+		//CreateFrameBuffer(viewPortWidth, viewPortHeight);
+		//unsigned int frameBuffer = fb.id;
+		//unsigned int texColorBuffer = fb.texColorBufferID;
+		//
+		////SKYBOX
+		//
+		//float skyboxVertices[] = {
+		//	// positions          
+		//	-1.0f,  1.0f, -1.0f,
+		//	-1.0f, -1.0f, -1.0f,
+		//	 1.0f, -1.0f, -1.0f,
+		//	 1.0f, -1.0f, -1.0f,
+		//	 1.0f,  1.0f, -1.0f,
+		//	-1.0f,  1.0f, -1.0f,
+		//
+		//	-1.0f, -1.0f,  1.0f,
+		//	-1.0f, -1.0f, -1.0f,
+		//	-1.0f,  1.0f, -1.0f,
+		//	-1.0f,  1.0f, -1.0f,
+		//	-1.0f,  1.0f,  1.0f,
+		//	-1.0f, -1.0f,  1.0f,
+		//
+		//	 1.0f, -1.0f, -1.0f,
+		//	 1.0f, -1.0f,  1.0f,
+		//	 1.0f,  1.0f,  1.0f,
+		//	 1.0f,  1.0f,  1.0f,
+		//	 1.0f,  1.0f, -1.0f,
+		//	 1.0f, -1.0f, -1.0f,
+		//
+		//	-1.0f, -1.0f,  1.0f,
+		//	-1.0f,  1.0f,  1.0f,
+		//	 1.0f,  1.0f,  1.0f,
+		//	 1.0f,  1.0f,  1.0f,
+		//	 1.0f, -1.0f,  1.0f,
+		//	-1.0f, -1.0f,  1.0f,
+		//
+		//	-1.0f,  1.0f, -1.0f,
+		//	 1.0f,  1.0f, -1.0f,
+		//	 1.0f,  1.0f,  1.0f,
+		//	 1.0f,  1.0f,  1.0f,
+		//	-1.0f,  1.0f,  1.0f,
+		//	-1.0f,  1.0f, -1.0f,
+		//
+		//	-1.0f, -1.0f, -1.0f,
+		//	-1.0f, -1.0f,  1.0f,
+		//	 1.0f, -1.0f, -1.0f,
+		//	 1.0f, -1.0f, -1.0f,
+		//	-1.0f, -1.0f,  1.0f,
+		//	 1.0f, -1.0f,  1.0f
+		//};
+		//
+		////NOTE: We don´t need texture coordinates for sky box since each vertex position is interoplated and that's the direction vector we need!!!
+		//unsigned int skyBoxVao;
+		//glGenVertexArrays(1, &skyBoxVao);
+		//glBindVertexArray(skyBoxVao);
+		//unsigned int skyBoxVbo;
+		//glGenBuffers(1, &skyBoxVbo);
+		//glBindBuffer(GL_ARRAY_BUFFER, skyBoxVbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(0);
+		//glBindVertexArray(0);
+		//
+		//std::vector<std::string> cubeMapPaths;
+		//cubeMapPaths.push_back("Source\\Textures\\skybox\\right.jpg");
+		//cubeMapPaths.push_back("Source\\Textures\\skybox\\left.jpg");
+		//cubeMapPaths.push_back("Source\\Textures\\skybox\\top.jpg");
+		//cubeMapPaths.push_back("Source\\Textures\\skybox\\bottom.jpg");
+		//cubeMapPaths.push_back("Source\\Textures\\skybox\\front.jpg");
+		//cubeMapPaths.push_back("Source\\Textures\\skybox\\back.jpg");
+		//
+		//unsigned int cubeMap;
+		//glGenTextures(1, &cubeMap);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+		//unsigned int i = 0;
+		//for (std::string path : cubeMapPaths)
+		//{
+		//	int width, height, chaCount;
+		//	unsigned char* imgData;
+		//	imgData = stbi_load(path.c_str(), &width, &height, &chaCount, 0);
+		//	if (imgData)
+		//	{
+		//		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
+		//		std::cout << "LOADING TEXTURE SUCCESS at path: " << path << std::endl;
+		//		stbi_image_free(imgData);
+		//	}
+		//	else
+		//	{
+		//		std::cout << "ERROR::LOADING TEXTURE at path: " << path << std::endl;
+		//	}
+		//}
+		//
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		//
+		//
+		//// Test Geometry Shader
+		//float points[] = {
+		//-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
+		// 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
+		// 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
+		//-0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
+		//};
+		//
+		//unsigned int houseVao;
+		//glGenVertexArrays(1, &houseVao);
+		//glBindVertexArray(houseVao);
+		//
+		//unsigned int houseVbo;
+		//glGenBuffers(1, &houseVbo);
+		//glBindBuffer(GL_ARRAY_BUFFER, houseVbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+		//glEnableVertexAttribArray(1);
+		//
+		//glBindVertexArray(0);
 
-		glEnable(GL_DEPTH_TEST);
+
+
+
+		//float quadVertices[] = {
+		//	// positions     // colors
+		//	-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+		//	 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		//	-0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
+		//
+		//	-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+		//	 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		//	 0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+		//};
+		//
+		//glm::vec2 offsets[100];
+		//int index = 0;
+		//float baseOffset = 0.1f;
+		//for (int y = -10; y < 10; y += 2)
+		//{
+		//	for (int x = -10; x < 10; x += 2)
+		//	{
+		//		glm::vec2 offset;
+		//		offset.x = (float)x / 10.0f + baseOffset;
+		//		offset.y = (float)y / 10.0f + baseOffset;
+		//		offsets[index++] = offset;
+		//	}
+		//}
+		//
+		//
+		//unsigned int quadVao;
+		//glGenVertexArrays(1, &quadVao);
+		//glBindVertexArray(quadVao);
+		//
+		//unsigned int quadVbo;
+		//glGenBuffers(1, &quadVbo);
+		//glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+		//
+		//unsigned int offsetVbo;
+		//glGenBuffers(1, &offsetVbo);
+		//glBindBuffer(GL_ARRAY_BUFFER, offsetVbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &offsets[0], GL_STATIC_DRAW);
+		//
+		//glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(0);
+		//
+		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+		//glEnableVertexAttribArray(1);
+		//
+		////NOTE: this is an instanced array!
+		//glBindBuffer(GL_ARRAY_BUFFER, offsetVbo);
+		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(2);
+		//glVertexAttribDivisor(2, 1);
+		//
+		//glBindVertexArray(0);
+		//
+		////Asteriod model transform matrices!
+		//SeedInit();
+		//
+		//const unsigned int asteroidCount = 3000;
+		//glm::mat4* modelMatrices = new glm::mat4[asteroidCount];
+		//glm::vec3 center = glm::vec3(0, -10, -50);
+		//glm::vec3 dir = glm::vec3(1, 0, 0);
+		//glm::vec3 pivot = glm::vec3(0, 1, 0);
+		//
+		//float radius = 100.0f;
+		//float offset = 20.0f;
+		//float offsetHeight = 10.0f;
+		//for (unsigned int i = 0; i < asteroidCount; ++i)
+		//{
+		//	float height = offsetHeight * randMinOneToPlusOne();
+		//	float r = radius + offset * randMinOneToPlusOne();
+		//	glm::vec3 p = r * dir + height * pivot;
+		//	float angle = randZeroToPlusOne() * 360.0f;
+		//	float asteroidAngle = randZeroToPlusOne() * 360.0f;
+		//
+		//	float scaleWidth = randZeroToPlusOne() * 1.0f;
+		//
+		//	glm::vec3 scaleVec = glm::vec3(scaleWidth, scaleWidth, scaleWidth);
+		//	glm::vec3 asteroidPivot = randomInUnitSphere();
+		//
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, center);
+		//	model = glm::rotate(model, glm::radians(angle), pivot);
+		//	model = glm::translate(model, p);
+		//	model = glm::scale(model, scaleVec);
+		//	model = glm::rotate(model, glm::radians(asteroidAngle), asteroidPivot);
+		//	modelMatrices[i] = model;
+		//}
+		//
+		//unsigned int asteroidModelMatricesVbo;
+		//glGenBuffers(1, &asteroidModelMatricesVbo);
+		//glBindBuffer(GL_ARRAY_BUFFER, asteroidModelMatricesVbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * asteroidCount, &modelMatrices[0], GL_STATIC_DRAW);
+		//
+		//for (unsigned int i = 0; i < rockModel.meshes.size(); ++i)
+		//{
+		//	unsigned int VAO = rockModel.meshes[i].VAO;
+		//	glBindVertexArray(VAO);
+		//	//El maximo que puedes poner es 4 flotantes
+		//	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+		//	glEnableVertexAttribArray(3);
+		//	glVertexAttribDivisor(3, 1);
+		//
+		//	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+		//	glEnableVertexAttribArray(4);
+		//	glVertexAttribDivisor(4, 1);
+		//
+		//	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+		//	glEnableVertexAttribArray(5);
+		//	glVertexAttribDivisor(5, 1);
+		//
+		//	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+		//	glEnableVertexAttribArray(6);
+		//	glVertexAttribDivisor(6, 1);
+		//
+		//	glBindVertexArray(0);
+		//
+		//}
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+
+		//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
+
+		unsigned int bi_phong = glGetUniformBlockIndex(phongShader.ID, "Matrices");
 		glCheckError();
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glCheckError();
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glCheckError();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glUniformBlockBinding(phongShader.ID, bi_phong, 0);
 		glCheckError();
 
-		glm::mat4 projection = camera.getProjectionMatrix();
+		unsigned int bi_blinnPhong = glGetUniformBlockIndex(blinnPhongShader.ID, "Matrices");
+		glCheckError();
+		glUniformBlockBinding(blinnPhongShader.ID, bi_blinnPhong, 0);
+		glCheckError();
+
+		unsigned int uboMatrices;
+		glGenBuffers(1, &uboMatrices);
+		glCheckError();
 		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
 		glCheckError();
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		glCheckError();
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 		glCheckError();
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glCheckError();
 
 
-		glm::mat4 view = camera.getViewMatrix();
-		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-		glCheckError();
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-		glCheckError();
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glCheckError();
+		float planeVertices[] = {
+			-5.5f,  0.5f, -5.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+			 5.5f,  0.5f, -5.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+			 5.5f,  0.5f,  5.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+			 5.5f,  0.5f,  5.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+			-5.5f,  0.5f,  5.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+			-5.5f,  0.5f, -5.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+		};
 
-		lightShader.use();
-		lightShader.setVec3("viewPos", camera.getCameraPos());
-		lightShader.setVec3("diffuseColor", glm::vec3(0.5f, 0.5f, 0.5f));
-		lightShader.setVec3("dLight.direction", glm::vec3(-0.5f, -0.5f, -0.5f));
-		lightShader.setVec3("dLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-		lightShader.setVec3("dLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		lightShader.setVec3("dLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		
-		lightShader.setInt("mat.texture_diffuse1", 0);
-		lightShader.setFloat("mat.shininess", 1.0f);
-		lightShader.setFloat("specularColor", 1.0f);
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture0ID);
-
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0, -1.0f, 0));
-		lightShader.setMat4("modelMatrix", model);
-
+		unsigned int floorVao;
+		glGenVertexArrays(1, &floorVao);
 		glBindVertexArray(floorVao);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		unsigned int floorVbo;
+		glGenBuffers(1, &floorVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, floorVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-		//
-		//lightShader.use();
-		//lightShader.setInt("texture_diffuse1", 0);
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, rockModel.textures_loaded[0].id);
-		//for (unsigned int i = 0; i < rockModel.meshes.size(); i++)
-		//{
-		//	glBindVertexArray(rockModel.meshes[i].VAO);
-		//	glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, asteroidCount);
-		//	glBindVertexArray(0);
-		//}
+		//Texture object generation
+
+		unsigned int texture0ID;
+		glGenTextures(1, &texture0ID);
+		glBindTexture(GL_TEXTURE_2D, texture0ID);
+
+		//set the texture wrapping/filtering options (on the currently bound texture object)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glCheckError();
+
+		{
+			int width, height, chaCount;
+			//TODO: Check how we are receiving the data!!!
+			unsigned char* data = stbi_load("Source\\Textures\\wood.png", &width, &height, &chaCount, 0);
+			if (data)
+			{
+				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
+				//NOTE: It should be used for diffuse textures only!!! NO specular maps, NO  height maps, etc.!!!
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glCheckError();
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glCheckError();
+				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+			}
+			else
+			{
+				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			}
+			stbi_image_free(data);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glCheckError();
+
+
+		while (!glfwWindowShouldClose(window))
+		{
+			process_input(window);
+
+			glEnable(GL_DEPTH_TEST);
+			glCheckError();
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glCheckError();
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glCheckError();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glCheckError();
+
+			glm::mat4 projection = camera.getProjectionMatrix();
+			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			glCheckError();
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+			glCheckError();
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			glCheckError();
+
+
+			glm::mat4 view = camera.getViewMatrix();
+			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			glCheckError();
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			glCheckError();
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			glCheckError();
+
+			glm::mat4 phongModel = glm::mat4(1.0f);
+			phongModel = glm::translate(phongModel, glm::vec3(0, -1.0f, 0));
+
+			glm::mat4 blinnPhongModel = glm::mat4(1.0f);
+			blinnPhongModel = glm::translate(blinnPhongModel, glm::vec3(15.0f, -1.0f, 0));
+
+			DrawFloor(phongShader, floorVao, texture0ID, phongModel);
+			//DrawFloor(blinnPhongShader, floorVao, texture0ID, blinnPhongModel);
+
+			//
+			//lightShader.use();
+			//lightShader.setInt("texture_diffuse1", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glBindTexture(GL_TEXTURE_2D, rockModel.textures_loaded[0].id);
+			//for (unsigned int i = 0; i < rockModel.meshes.size(); i++)
+			//{
+			//	glBindVertexArray(rockModel.meshes[i].VAO);
+			//	glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, asteroidCount);
+			//	glBindVertexArray(0);
+			//}
 
 
 
-		//glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::translate(model, glm::vec3(0.0, 0.0, -0.5f));
+			//glm::mat4 model = glm::mat4(1.0f);
+			//model = glm::translate(model, glm::vec3(0.0, 0.0, -0.5f));
 
-		//{
-		//	objectNormal.use();
-		//	unsigned int modelLoc = glGetUniformLocation(objectNormal.GetID(), "model");
-		//	glCheckError();
-		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//	glCheckError();
-		//
-		//	bpModel.Draw(objectNormal);
-		//}
-		//
-		//{
-		//	displayNormal.use();
-		//	unsigned int modelLoc = glGetUniformLocation(displayNormal.GetID(), "model");
-		//	glCheckError();
-		//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//	glCheckError();
-		//
-		//	bpModel.Draw(displayNormal);
-		//}
-		//explodeShader.setVar("time", (float)glfwGetTime());
+			//{
+			//	objectNormal.use();
+			//	unsigned int modelLoc = glGetUniformLocation(objectNormal.GetID(), "model");
+			//	glCheckError();
+			//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			//	glCheckError();
+			//
+			//	bpModel.Draw(objectNormal);
+			//}
+			//
+			//{
+			//	displayNormal.use();
+			//	unsigned int modelLoc = glGetUniformLocation(displayNormal.GetID(), "model");
+			//	glCheckError();
+			//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			//	glCheckError();
+			//
+			//	bpModel.Draw(displayNormal);
+			//}
+			//explodeShader.setVar("time", (float)glfwGetTime());
 
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+		}
+
+		//DeleteFrameBuffer();
 	}
-
-	//DeleteFrameBuffer();
-
+	else
+	{
+		int x = 5;
+	}
 	glfwTerminate();
 	return 0;
 }

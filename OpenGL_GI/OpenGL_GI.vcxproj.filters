@@ -169,5 +169,17 @@
     <None Include="Planet.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Phong.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Phong.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BlinnPhong.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BlinnPhong.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

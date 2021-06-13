@@ -163,6 +163,8 @@
     <None Include="Asteroid.frag" />
     <None Include="Asteroid.vert" />
     <None Include="backpack.frag" />
+    <None Include="BlinnPhong.frag" />
+    <None Include="BlinnPhong.vert" />
     <None Include="BlueCube.frag" />
     <None Include="CubeMap.frag" />
     <None Include="CubeMap.vert" />
@@ -186,6 +188,8 @@
     <None Include="ObjectNormal.frag" />
     <None Include="ObjectNormal.vert" />
     <None Include="OutlineObject.frag" />
+    <None Include="Phong.frag" />
+    <None Include="Phong.vert" />
     <None Include="Planet.frag" />
     <None Include="Planet.vert" />
     <None Include="QuadInstancing.frag" />
