@@ -12,6 +12,8 @@ class Shader
 public:
     unsigned int ID;
     bool isValid;
+    Shader();
+    Shader(const Shader& other);
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);

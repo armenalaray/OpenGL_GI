@@ -1,5 +1,17 @@
 #include "Shader.h"
 
+Shader::Shader()
+{
+	this->ID = 0;
+	this->isValid = false;
+}
+
+Shader::Shader(const Shader& other)
+{
+	this->ID = other.ID;
+	this->isValid = other.isValid;
+}
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath)
 {
 	isValid = true;

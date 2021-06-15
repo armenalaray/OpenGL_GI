@@ -13,6 +13,7 @@
 #include "Camera.h"
 #include "Model.h"
 #include "Utility.h"
+#include "ShaderList.h"
 
 /*
 *
@@ -358,9 +359,14 @@ int main()
 	//Shader quadInstancing("QuadInstancing.vert", "QuadInstancing.frag");
 
 	//Shader asteroidsShader("Asteroid.vert", "Asteroid.frag");
-	Shader phongShader("Phong.vert", "Phong.frag");
-	Shader blinnPhongShader("BlinnPhong.vert", "BlinnPhong.frag");
-	if (phongShader.isValid && blinnPhongShader.isValid)
+	//Shader phongShader("Phong.vert", "Phong.frag");
+	//Shader blinnPhongShader("BlinnPhong.vert", "BlinnPhong.frag");
+
+	ShaderList list;
+	list.shaders.push_back(Shader("LightDepth.vert", "LightDepth.frag"));
+	list.shaders.push_back(Shader("DepthBufferQuad.vert", "DepthBufferQuad.frag"));
+
+	if (list.ShadersAreValid())
 	{
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		stbi_set_flip_vertically_on_load(true);
@@ -645,31 +651,167 @@ int main()
 		//}
 		//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		float cubeVertices[] = {
+			// back face
+			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+			 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+			-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+			// front face
+			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+			 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+			-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+			// left face
+			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+			-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+			-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+			// right face
+			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+			 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+			 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+			// bottom face
+			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+			 1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+			-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+			// top face
+			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+			 1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+			 1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+			 1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+			-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+		};
 
+		float quadVertices[]
+		{
+			-1.0f,  1.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f,
+			 1.0f, -1.0f, 1.0f, 0.0f,
+
+			-1.0f,  1.0f, 0.0f, 1.0f,
+			 1.0f, -1.0f, 1.0f, 0.0f,
+			 1.0f,  1.0f, 1.0f, 1.0f,
+		};
+
+		unsigned int cubeVao;
+		glGenVertexArrays(1, &cubeVao);
+		glBindVertexArray(cubeVao);
+
+		unsigned int cubeVbo;
+		glGenBuffers(1, &cubeVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		unsigned int quadVao;
+		glGenVertexArrays(1, &quadVao);
+		glBindVertexArray(quadVao);
+
+		unsigned int quadVbo;
+		glGenBuffers(1, &quadVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		//NOTE: this is the resolution of the depthmap
+		const unsigned int shadWidth = 1024, shadHeight = 1024;
+		unsigned int shadDB;
+		glGenFramebuffers(1, &shadDB);
+		glCheckError();
+		glBindFramebuffer(GL_FRAMEBUFFER, shadDB);
+		glCheckError();
+		unsigned int shadDBTexture;
+		glGenTextures(1, &shadDBTexture);
+		glCheckError();
+		glBindTexture(GL_TEXTURE_2D, shadDBTexture);
+		glCheckError();
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadWidth, shadHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glCheckError();
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glCheckError();
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadDBTexture, 0);
+		glCheckError();
+
+		glDrawBuffer(GL_NONE);
+		glCheckError();
+		glReadBuffer(GL_NONE);
+		glCheckError();
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+		else
+			std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
+
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glCheckError();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glCheckError();
 
 		//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
 
-		unsigned int bi_phong = glGetUniformBlockIndex(phongShader.ID, "Matrices");
-		glCheckError();
-		glUniformBlockBinding(phongShader.ID, bi_phong, 0);
-		glCheckError();
-
-		unsigned int bi_blinnPhong = glGetUniformBlockIndex(blinnPhongShader.ID, "Matrices");
-		glCheckError();
-		glUniformBlockBinding(blinnPhongShader.ID, bi_blinnPhong, 0);
-		glCheckError();
-
-		unsigned int uboMatrices;
-		glGenBuffers(1, &uboMatrices);
-		glCheckError();
-		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-		glCheckError();
-		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-		glCheckError();
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
-		glCheckError();
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glCheckError();
+		//unsigned int bi_phong = glGetUniformBlockIndex(phongShader.ID, "Matrices");
+		//glCheckError();
+		//glUniformBlockBinding(phongShader.ID, bi_phong, 0);
+		//glCheckError();
+		//
+		//unsigned int bi_blinnPhong = glGetUniformBlockIndex(blinnPhongShader.ID, "Matrices");
+		//glCheckError();
+		//glUniformBlockBinding(blinnPhongShader.ID, bi_blinnPhong, 0);
+		//glCheckError();
+		//
+		//unsigned int uboMatrices;
+		//glGenBuffers(1, &uboMatrices);
+		//glCheckError();
+		//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		//glCheckError();
+		//glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		//glCheckError();
+		//glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+		//glCheckError();
+		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		//glCheckError();
 
 
 		float planeVertices[] = {
@@ -746,40 +888,89 @@ int main()
 		while (!glfwWindowShouldClose(window))
 		{
 			process_input(window);
+			
+			//glm::mat4 projection = camera.getProjectionMatrix();
+			//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			//glCheckError();
+			//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+			//glCheckError();
+			//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			//glCheckError();
+			//
+			//
+			//glm::mat4 view = camera.getViewMatrix();
+			//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			//glCheckError();
+			//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			//glCheckError();
+			//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			//glCheckError();
+
+			glViewport(0, 0, shadWidth, shadHeight);
+			glBindFramebuffer(GL_FRAMEBUFFER, shadDB);
 
 			glEnable(GL_DEPTH_TEST);
 			glCheckError();
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glCheckError();
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glCheckError();
+
+			list.shaders[0].use();
+			glm::vec3 center = glm::vec3(0, 0, 0);
+			glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
+			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+			
+			glm::vec3 lightDir = center - lightPos;
+
+			glm::mat4 lightViewMatrix = glm::lookAt(lightPos, center, up);
+
+			float nearPlane = 1.0f, farPlane = 7.5f;
+			glm::mat4 lightOrthoMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+			list.shaders[0].setMat4("lightViewOrthoMatrix", lightOrthoMatrix * lightViewMatrix);
+
+			glm::mat4 cubeModelMatrix = glm::mat4(1.0f);
+			cubeModelMatrix = glm::translate(cubeModelMatrix, glm::vec3(-1.0f, 2.0f, 0.0f));
+			cubeModelMatrix = glm::rotate(cubeModelMatrix, glm::radians(90.0f),glm::vec3(0.0f,1.0f,1.0f));
+			list.shaders[0].setMat4("modelMatrix", cubeModelMatrix);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texture0ID);
+			glBindVertexArray(cubeVao);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+
+			glm::mat4 planeModelMatrix = glm::mat4(1.0f);
+			planeModelMatrix = glm::translate(planeModelMatrix, glm::vec3(0.0f, -3.0f, 0));
+			list.shaders[0].setMat4("modelMatrix", planeModelMatrix);
+
+			glBindVertexArray(floorVao);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+
+			
+			list.shaders[1].use();
+			glViewport(0, 0, viewPortWidth, viewPortHeight);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glCheckError();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCheckError();
 
-			glm::mat4 projection = camera.getProjectionMatrix();
-			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-			glCheckError();
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-			glCheckError();
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			glCheckError();
+			list.shaders[1].setInt("screenTexture", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, shadDBTexture);
+			glBindVertexArray(quadVao);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
 
 
-			glm::mat4 view = camera.getViewMatrix();
-			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-			glCheckError();
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-			glCheckError();
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			glCheckError();
 
-			glm::mat4 phongModel = glm::mat4(1.0f);
-			phongModel = glm::translate(phongModel, glm::vec3(0, -1.0f, 0));
+			
 
-			glm::mat4 blinnPhongModel = glm::mat4(1.0f);
-			blinnPhongModel = glm::translate(blinnPhongModel, glm::vec3(15.0f, -1.0f, 0));
 
-			DrawFloor(phongShader, floorVao, texture0ID, phongModel);
+			//DrawFloor(list.shaders[0], floorVao, texture0ID, phongModel);
+			
 			//DrawFloor(blinnPhongShader, floorVao, texture0ID, blinnPhongModel);
 
 			//
