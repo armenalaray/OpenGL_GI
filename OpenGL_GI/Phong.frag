@@ -51,18 +51,19 @@ struct Spot_Light
 
 in VSBLOCK
 {
-    vec3 objectPos;
+	vec3 objectWorldP;
 	vec3 normal;
 	vec2 texCoords;
+	vec4 lightViewPos;
 }fsIn;
 
-
+uniform sampler2D shadowMap;
 uniform vec3 viewPos;
 uniform Material mat;
 uniform float specularColor;
 
 //uniform samplerCube skyBox;
-uniform int viewPortHalfWidth;
+//uniform int viewPortHalfWidth;
 
 uniform Directional_Light dLight;
 //#define POINT_LIGHT_COUNT 1
@@ -76,6 +77,32 @@ uniform Directional_Light dLight;
 
 out vec4 FragColor;
 
+float CalcShadows()
+{
+	float result = 0.0f;
+
+	//NOTE: account for perspective division, if any
+	vec3 ndcCoord = fsIn.lightViewPos.xyz / fsIn.lightViewPos.w; 
+	vec3 normCoord = (ndcCoord + vec3(1.0f)) * 0.5f;
+	float fragDepth  = normCoord.z;
+
+	float bias = max(0.5 * (1.0f - dot(fsIn.normal, -dLight.direction)), 0.005f);
+	vec2 texSize = 1.0 / textureSize(shadowMap, 0);
+	for(int x =- 1; x <= 1; ++x)
+	{
+		for(int y =- 1; y <= 1; ++y)
+		{
+			float pcfDepth = texture(shadowMap, normCoord.xy + vec2(x,y) * texSize).r;
+			if(fragDepth - bias > pcfDepth) result += 1.0f; else result += 0.0f;
+		}
+	}
+
+	result /= 9.0;
+
+	//NOTE: we are unshadowing the result if the fragment is outside the light's frustrum far plane .
+	if(fragDepth > 1.0) result = 0.0f;
+	return result;
+}
 
 vec3 calcDirectionalLightCompPhong(Directional_Light light, float shininess)
 {
@@ -89,7 +116,7 @@ vec3 calcDirectionalLightCompPhong(Directional_Light light, float shininess)
 	float diffuse = max(dot(norm,lightDir), 0);
 	
 	//Specular::
-	vec3 viewDir = normalize(viewPos - fsIn.objectPos);
+	vec3 viewDir = normalize(viewPos - fsIn.objectWorldP);
 	vec3 refDir = reflect(-lightDir, norm);
 	//NOTE: the power is the shininess of the highlight
 	float specular = pow(max(dot(viewDir,refDir),0.0),shininess);
@@ -124,7 +151,7 @@ vec3 calcDirectionalLightCompBlinnPhong(Directional_Light light, float shininess
 	float diffuse = max(dot(norm,lightDir), 0);
 	
 	//Specular::
-	vec3 viewDir = normalize(viewPos - fsIn.objectPos);
+	vec3 viewDir = normalize(viewPos - fsIn.objectWorldP);
 	vec3 halfDir = normalize(lightDir + viewDir);
 	float specular = pow(max(dot(halfDir,fsIn.normal),0.0), shininess);
 	
@@ -142,7 +169,9 @@ vec3 calcDirectionalLightCompBlinnPhong(Directional_Light light, float shininess
 	vec3 diffuseLight =  spotLightFallOff * diffuseColor * (diffuse * light.diffuse);
 	vec3 ambientLight = diffuseColor * (light.ambient);
 	
-	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight);
+	float shadow = CalcShadows();
+
+	vec3 result = attenuation * (ambientLight + (1-shadow)*(diffuseLight + specularLight));
 	return  result;
 }
 
@@ -151,15 +180,7 @@ void main()
 {
 	vec3 res = vec3(0);
 	float myShininess = mat.shininess;
-	if(gl_FragCoord.x < viewPortHalfWidth)
-	{
-		res += calcDirectionalLightCompPhong(dLight, myShininess);
-	}
-	else
-	{
-		//myShininess = 10*myShininess;
-		res += calcDirectionalLightCompBlinnPhong(dLight, myShininess);
-	}
+	res += calcDirectionalLightCompBlinnPhong(dLight, myShininess);
 	FragColor = vec4(res,1.0);
 	float gamma = 2.2;
 	FragColor.rgb = pow(FragColor.rgb,vec3(1.0/gamma));
