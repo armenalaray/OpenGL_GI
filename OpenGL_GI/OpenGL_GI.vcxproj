@@ -148,6 +148,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderList.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderList.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Utility.h" />
   </ItemGroup>
@@ -163,9 +165,13 @@
     <None Include="Asteroid.frag" />
     <None Include="Asteroid.vert" />
     <None Include="backpack.frag" />
+    <None Include="BlinnPhong.frag" />
+    <None Include="BlinnPhong.vert" />
     <None Include="BlueCube.frag" />
     <None Include="CubeMap.frag" />
     <None Include="CubeMap.vert" />
+    <None Include="DepthBufferQuad.frag" />
+    <None Include="DepthBufferQuad.vert" />
     <None Include="DisplayNormal.frag" />
     <None Include="DisplayNormal.geom" />
     <None Include="DisplayNormal.vert" />
@@ -181,11 +187,15 @@
     <None Include="House.vert" />
     <None Include="Light.frag" />
     <None Include="Light.vert" />
+    <None Include="LightDepth.frag" />
+    <None Include="LightDepth.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
     <None Include="ObjectNormal.frag" />
     <None Include="ObjectNormal.vert" />
     <None Include="OutlineObject.frag" />
+    <None Include="Phong.frag" />
+    <None Include="Phong.vert" />
     <None Include="Planet.frag" />
     <None Include="Planet.vert" />
     <None Include="QuadInstancing.frag" />

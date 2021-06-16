@@ -42,6 +42,9 @@
     <ClCompile Include="Utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -167,6 +173,30 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Planet.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Phong.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Phong.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BlinnPhong.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BlinnPhong.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="LightDepth.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="LightDepth.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DepthBufferQuad.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DepthBufferQuad.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
