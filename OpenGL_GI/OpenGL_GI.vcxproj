@@ -168,6 +168,9 @@
     <None Include="BlinnPhong.frag" />
     <None Include="BlinnPhong.vert" />
     <None Include="BlueCube.frag" />
+    <None Include="CubeDepthMap.frag" />
+    <None Include="CubeDepthMap.geom" />
+    <None Include="CubeDepthMap.vert" />
     <None Include="CubeMap.frag" />
     <None Include="CubeMap.vert" />
     <None Include="DepthBufferQuad.frag" />

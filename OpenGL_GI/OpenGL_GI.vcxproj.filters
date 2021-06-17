@@ -16,6 +16,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{e48c1291-5226-4448-a0b3-4a65f5a4753e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\OlderShaders">
+      <UniqueIdentifier>{ae50affc-b76a-4194-918e-14f92145524a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -70,133 +73,142 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Object.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Object.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Light.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Light.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="backpack.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="OutlineObject.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Floor.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Window.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="FrameBufferQuad.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="FrameBufferQuad.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="CubeMap.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="CubeMap.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="RedCube.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="RedCube.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="GreenCube.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="BlueCube.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="YellowCube.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Test.geom">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="House.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="House.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="House.geom">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Explode.geom">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Explode.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Explode.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="DisplayNormal.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="DisplayNormal.geom">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="DisplayNormal.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ObjectNormal.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="ObjectNormal.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="QuadInstancing.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="QuadInstancing.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Asteroid.frag">
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
     <None Include="Asteroid.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
-    <None Include="Asteroid.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Planet.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Planet.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Phong.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Phong.vert">
-      <Filter>Shaders</Filter>
+    <None Include="backpack.frag">
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
     <None Include="BlinnPhong.frag">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
     <None Include="BlinnPhong.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
-    <None Include="LightDepth.vert">
-      <Filter>Shaders</Filter>
+    <None Include="BlueCube.frag">
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
-    <None Include="LightDepth.frag">
-      <Filter>Shaders</Filter>
+    <None Include="CubeMap.frag">
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
-    <None Include="DepthBufferQuad.vert">
-      <Filter>Shaders</Filter>
+    <None Include="CubeMap.vert">
+      <Filter>Shaders\OlderShaders</Filter>
     </None>
     <None Include="DepthBufferQuad.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="DepthBufferQuad.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="DisplayNormal.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="DisplayNormal.geom">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="DisplayNormal.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Explode.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Explode.geom">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Explode.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Floor.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="FrameBufferQuad.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="FrameBufferQuad.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="GreenCube.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="House.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="House.geom">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="House.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Light.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Light.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="LightDepth.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="LightDepth.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Object.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Object.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="ObjectNormal.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="ObjectNormal.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="OutlineObject.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Phong.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Phong.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Planet.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Planet.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="QuadInstancing.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="QuadInstancing.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="RedCube.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="RedCube.vert">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Test.geom">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="Window.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="YellowCube.frag">
+      <Filter>Shaders\OlderShaders</Filter>
+    </None>
+    <None Include="CubeDepthMap.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="CubeDepthMap.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="CubeDepthMap.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
