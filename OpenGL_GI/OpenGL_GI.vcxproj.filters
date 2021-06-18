@@ -169,12 +169,6 @@
     <None Include="OutlineObject.frag">
       <Filter>Shaders\OlderShaders</Filter>
     </None>
-    <None Include="Phong.frag">
-      <Filter>Shaders\OlderShaders</Filter>
-    </None>
-    <None Include="Phong.vert">
-      <Filter>Shaders\OlderShaders</Filter>
-    </None>
     <None Include="Planet.frag">
       <Filter>Shaders\OlderShaders</Filter>
     </None>
@@ -209,6 +203,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="CubeDepthMap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Phong.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Phong.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

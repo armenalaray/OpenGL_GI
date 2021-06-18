@@ -104,59 +104,95 @@ void Shader::use()
 // ------------------------------------------------------------------------
 void Shader::setBool(const std::string& name, bool value) const
 {
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform1i(uLoc, (int)value);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setInt(const std::string& name, int value) const
 {
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform1i(uLoc, (int)value);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setFloat(const std::string& name, float value) const
 {
-	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform1f(uLoc, (float)value);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setVec2(const std::string& name, const glm::vec2& value) const
 {
-	glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform2fv(uLoc, 1, &value[0]);
+	glCheckError();
 }
 void Shader::setVec2(const std::string& name, float x, float y) const
 {
-	glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform2f(uLoc, x, y);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setVec3(const std::string& name, const glm::vec3& value) const
 {
-	glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform3fv(uLoc, 1, &value[0]);
+	glCheckError();
 }
 void Shader::setVec3(const std::string& name, float x, float y, float z) const
 {
-	glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform3f(uLoc, x, y, z);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setVec4(const std::string& name, const glm::vec4& value) const
 {
-	glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform4fv(uLoc, 1, &value[0]);
+	glCheckError();
 }
 void Shader::setVec4(const std::string& name, float x, float y, float z, float w)
 {
-	glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniform4f(uLoc, x, y, z, w);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setMat2(const std::string& name, const glm::mat2& mat) const
 {
-	glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniformMatrix2fv(uLoc, 1, GL_FALSE, &mat[0][0]);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setMat3(const std::string& name, const glm::mat3& mat) const
 {
-	glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniformMatrix3fv(uLoc, 1, GL_FALSE, &mat[0][0]);
+	glCheckError();
 }
 // ------------------------------------------------------------------------
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+	GLint uLoc = glGetUniformLocation(ID, name.c_str());
+	glCheckError();
+	glUniformMatrix4fv(uLoc, 1, GL_FALSE, &mat[0][0]);
+	glCheckError();
 }
 
 // utility function for checking shader compilation/linking errors.
