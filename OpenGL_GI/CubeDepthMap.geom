@@ -1,7 +1,5 @@
 #version 330 core
-/*
-Entonces de todos los vertices generamos otros 5 mas aqui.
-*/
+
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
 

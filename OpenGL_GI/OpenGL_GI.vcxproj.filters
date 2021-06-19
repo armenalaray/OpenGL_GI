@@ -103,15 +103,6 @@
     <None Include="DepthBufferQuad.vert">
       <Filter>Shaders\OlderShaders</Filter>
     </None>
-    <None Include="DisplayNormal.frag">
-      <Filter>Shaders\OlderShaders</Filter>
-    </None>
-    <None Include="DisplayNormal.geom">
-      <Filter>Shaders\OlderShaders</Filter>
-    </None>
-    <None Include="DisplayNormal.vert">
-      <Filter>Shaders\OlderShaders</Filter>
-    </None>
     <None Include="Explode.frag">
       <Filter>Shaders\OlderShaders</Filter>
     </None>
@@ -209,6 +200,15 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Phong.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DisplayNormal.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DisplayNormal.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DisplayNormal.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

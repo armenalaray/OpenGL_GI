@@ -24,11 +24,9 @@ uniform mat4 modelMatrix;
 void main()
 {
 	vec4 verWorldP = modelMatrix * vec4(pIn,1.0);
-	//NOTE: no aplicaban la rotación de la vista!!!!
 	mat3 nMatrix = transpose(inverse(mat3(modelMatrix)));
 	vsOut.normal = normalize(nMatrix * nIn);
 	vsOut.texCoords = tIn;
-	//vsOut.lightViewPos = lightViewOrthoMatrix * verWorldP;
 	vsOut.objectPos = verWorldP.xyz;
 	gl_Position = projection * view * verWorldP;
 }
