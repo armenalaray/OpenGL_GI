@@ -8,15 +8,15 @@ layout (std140) uniform Matrices
 {
 	mat4 projection;
 	mat4 view;
-	mat4 lightViewOrthoMatrix;
+	//mat4 lightViewOrthoMatrix;
 };
 
 out VSBLOCK
 {
-	vec3 objectWorldP;
+	vec3 objectPos;
 	vec3 normal;
 	vec2 texCoords;
-	vec4 lightViewPos;
+	//vec4 lightViewPos;
 }vsOut;
 
 uniform mat4 modelMatrix;
@@ -24,11 +24,9 @@ uniform mat4 modelMatrix;
 void main()
 {
 	vec4 verWorldP = modelMatrix * vec4(pIn,1.0);
-	//NOTE: no aplicaban la rotación de la vista!!!!
 	mat3 nMatrix = transpose(inverse(mat3(modelMatrix)));
 	vsOut.normal = normalize(nMatrix * nIn);
 	vsOut.texCoords = tIn;
-	vsOut.lightViewPos = lightViewOrthoMatrix * verWorldP;
-	vsOut.objectWorldP = verWorldP.xyz;
+	vsOut.objectPos = verWorldP.xyz;
 	gl_Position = projection * view * verWorldP;
 }
