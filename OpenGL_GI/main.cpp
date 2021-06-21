@@ -936,7 +936,7 @@ int main()
 
 			///////////////////////////////////////////////////////////////////////////////////////////////////
 			//Omnidirectional Shadow Mapping
-			glm::vec3 lightPos = glm::vec3(sinf((float)glfwGetTime() * 0.1f) * 80.0f, 90.0f, 0.0f);
+			glm::vec3 lightPos = glm::vec3(0.0f, 90.0f, 0.0f);
 			float aspect = 1.0f;
 			float near = 1.0f;
 			float far = 250.0f;
