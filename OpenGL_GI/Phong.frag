@@ -54,15 +54,18 @@ in VSBLOCK
 	vec3 objectPos;
 	vec3 normal;
 	vec2 texCoords;
+	mat3 TBN;
+
 	//vec4 lightViewPos;
 }fsIn;
 
 //uniform sampler2D shadowMap;
 
 uniform samplerCube shadowMap;
+
 uniform vec3 viewPos;
 uniform Material mat;
-//uniform float specularColor;
+uniform float specularColor;
 
 //uniform samplerCube skyBox;
 //uniform int viewPortHalfWidth;
@@ -153,7 +156,13 @@ vec3 calcPointLightComp(Point_Light light)
 	attenuation = 1.0/(light.c + d*light.l+ d*d*light.q);
 	lightDir = normalize(lightDir);
 
-	vec3 norm = normalize(fsIn.normal);
+	vec3 normal = texture(mat.texture_normal1, fsIn.texCoords).rgb;
+	normal = normal * 2.0f - 1.0f;
+	vec3 norm = normalize(fsIn.TBN * normal);
+
+	//FragColor = vec4(fsIn.TBN[2],1.0);
+
+//	vec3 norm = normalize(fsIn.normal);
 	
 	//Diffuse::
 	float diffuse = max(dot(norm,lightDir), 0);
@@ -165,14 +174,15 @@ vec3 calcPointLightComp(Point_Light light)
 	
 	//NOTE: we skip alpha!!!
 	vec3 diffuseColor = texture(mat.texture_diffuse1, fsIn.texCoords).rgb;
-	float specularColor = texture(mat.texture_specular1, fsIn.texCoords).r;
+	//float specularColor = texture(mat.texture_specular1, fsIn.texCoords).r;
 	vec3 emissionColor = texture(mat.emission, fsIn.texCoords).rgb;
 	
 	vec3 specularLight = spotLightFallOff * specularColor * (specular * light.specular);
 	vec3 diffuseLight =  spotLightFallOff * diffuseColor * (diffuse * light.diffuse);
 	vec3 ambientLight = diffuseColor * (light.ambient);
 
-	float shadow = CalcPointShadows(light, fsIn.objectPos);
+	//float shadow = CalcPointShadows(light, fsIn.objectPos);
+	float shadow = 0.0f;
 	vec3 result = attenuation * (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight));
 	return  result;
 }

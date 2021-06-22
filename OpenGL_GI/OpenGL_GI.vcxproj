@@ -188,8 +188,8 @@
     <None Include="House.frag" />
     <None Include="House.geom" />
     <None Include="House.vert" />
-    <None Include="Light.frag" />
-    <None Include="Light.vert" />
+    <None Include="DebugLightPos.frag" />
+    <None Include="DebugLightPos.vert" />
     <None Include="LightDepth.frag" />
     <None Include="LightDepth.vert" />
     <None Include="Object.frag" />

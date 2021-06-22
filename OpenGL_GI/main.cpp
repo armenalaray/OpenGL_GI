@@ -339,6 +339,7 @@ int main()
 	list.shaders.push_back(Shader("Phong.vert", "Phong.frag"));
 	list.shaders.push_back(Shader("CubeDepthMap.vert", "CubeDepthMap.frag", "CubeDepthMap.geom"));
 	list.shaders.push_back(Shader("DisplayNormal.vert", "DisplayNormal.frag", "DisplayNormal.geom"));
+	list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
 
 	if (list.ShadersAreValid())
 	{
@@ -352,7 +353,7 @@ int main()
 		//Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
 		//Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
 
-		Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
+		//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 
 		//float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -812,79 +813,169 @@ int main()
 		glCheckError();
 
 
-		float planeHalfWidth = 10.0f;
-		float planeVertices[] = {
+		float roomHalfWidth = 10.0f;
+		float roomVertices[] = {
 			//Bottom plane
-			-planeHalfWidth,  0.0f, -planeHalfWidth,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-			-planeHalfWidth,  0.0f,  planeHalfWidth,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-			 planeHalfWidth,  0.0f,  planeHalfWidth,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+			-roomHalfWidth,  0.0f, -roomHalfWidth,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+			-roomHalfWidth,  0.0f,  roomHalfWidth,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+			 roomHalfWidth,  0.0f,  roomHalfWidth,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
 
-			-planeHalfWidth,  0.0f, -planeHalfWidth,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-			 planeHalfWidth,  0.0f,  planeHalfWidth,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-			 planeHalfWidth,  0.0f, -planeHalfWidth,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+			-roomHalfWidth,  0.0f, -roomHalfWidth,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+			 roomHalfWidth,  0.0f,  roomHalfWidth,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+			 roomHalfWidth,  0.0f, -roomHalfWidth,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
 			 //Top plane
-			-planeHalfWidth, 10.0f, -planeHalfWidth,  0.0f,  -1.0f,  0.0f,  0.0f, 0.0f,
-			 planeHalfWidth, 10.0f,  planeHalfWidth,  0.0f,  -1.0f,  0.0f,  1.0f, 1.0f,
-			-planeHalfWidth, 10.0f,  planeHalfWidth,  0.0f,  -1.0f,  0.0f,  0.0f, 1.0f,
+			-roomHalfWidth, 10.0f, -roomHalfWidth,  0.0f,  -1.0f,  0.0f,  0.0f, 0.0f,
+			 roomHalfWidth, 10.0f,  roomHalfWidth,  0.0f,  -1.0f,  0.0f,  1.0f, 1.0f,
+			-roomHalfWidth, 10.0f,  roomHalfWidth,  0.0f,  -1.0f,  0.0f,  0.0f, 1.0f,
 
-			-planeHalfWidth,  10.0f, -planeHalfWidth,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-			 planeHalfWidth,  10.0f, -planeHalfWidth,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-			 planeHalfWidth,  10.0f,  planeHalfWidth,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+			-roomHalfWidth,  10.0f, -roomHalfWidth,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+			 roomHalfWidth,  10.0f, -roomHalfWidth,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+			 roomHalfWidth,  10.0f,  roomHalfWidth,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
 
 			 //Right Plane
-			-planeHalfWidth, 10.0f, planeHalfWidth,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-			-planeHalfWidth, 0.0f,  planeHalfWidth,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-			-planeHalfWidth, 0.0f,  -planeHalfWidth,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+			-roomHalfWidth, 10.0f, roomHalfWidth,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+			-roomHalfWidth, 0.0f,  roomHalfWidth,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+			-roomHalfWidth, 0.0f,  -roomHalfWidth,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
 
-			-planeHalfWidth,  10.0f, planeHalfWidth,  1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
-			-planeHalfWidth,  0.0f, -planeHalfWidth,  1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
-			-planeHalfWidth,  10.0f, -planeHalfWidth, 1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
+			-roomHalfWidth,  10.0f, roomHalfWidth,  1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+			-roomHalfWidth,  0.0f, -roomHalfWidth,  1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
+			-roomHalfWidth,  10.0f, -roomHalfWidth, 1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
 
 			//Left Plane
-			planeHalfWidth, 0.0f, -planeHalfWidth,  -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-			planeHalfWidth, 0.0f,  planeHalfWidth,  -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-			planeHalfWidth, 10.0f, -planeHalfWidth,  -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+			roomHalfWidth, 0.0f, -roomHalfWidth,  -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+			roomHalfWidth, 0.0f,  roomHalfWidth,  -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+			roomHalfWidth, 10.0f, -roomHalfWidth,  -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
 
-			planeHalfWidth,  10.0f, -planeHalfWidth,  -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
-			planeHalfWidth,  0.0f,  planeHalfWidth,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
-			planeHalfWidth,  10.0f, planeHalfWidth, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
+			roomHalfWidth,  10.0f, -roomHalfWidth,  -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+			roomHalfWidth,  0.0f,  roomHalfWidth,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
+			roomHalfWidth,  10.0f, roomHalfWidth, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
 
 			//Back Plane
-			-planeHalfWidth, 0.0f,  -planeHalfWidth,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-			planeHalfWidth, 0.0f,  -planeHalfWidth,   0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-			-planeHalfWidth, 10.0f, -planeHalfWidth,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
+			-roomHalfWidth, 0.0f,  -roomHalfWidth,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+			roomHalfWidth, 0.0f,  -roomHalfWidth,   0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
+			-roomHalfWidth, 10.0f, -roomHalfWidth,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
 
-			-planeHalfWidth,  10.0f, -planeHalfWidth,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-			planeHalfWidth,  0.0f,  -planeHalfWidth,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-			planeHalfWidth,  10.0f, -planeHalfWidth,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f
+			-roomHalfWidth,  10.0f, -roomHalfWidth,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+			roomHalfWidth,  0.0f,  -roomHalfWidth,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+			roomHalfWidth,  10.0f, -roomHalfWidth,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f
+		};
+
+
+
+		// positions
+		glm::vec3 pos1(-1.0, 1.0, 0.0);
+		glm::vec3 pos2(-1.0, -1.0, 0.0);
+		glm::vec3 pos3(1.0, -1.0, 0.0);
+		glm::vec3 pos4(1.0, 1.0, 0.0);
+		// texture coordinates
+		glm::vec2 uv1(0.0, 1.0);
+		glm::vec2 uv2(0.0, 0.0);
+		glm::vec2 uv3(1.0, 0.0);
+		glm::vec2 uv4(1.0, 1.0);
+		// normal vector
+		glm::vec3 nm(0.0, 0.0, 1.0);
+
+		glm::vec3 tangents[2];
+		glm::vec3 bitangents[2];
+
+		{
+			//First triangle
+			glm::vec3 edge0 = pos2 - pos1;
+			glm::vec3 edge1 = pos3 - pos1;
+			glm::vec2 deltaUV0 = uv2 - uv1;
+			glm::vec2 deltaUV1 = uv3 - uv1;
+
+			float coeff = 1.0f / (deltaUV0.x * deltaUV1.y - deltaUV1.x * deltaUV0.y);
+
+			glm::vec3& tangent = tangents[0];
+			glm::vec3& bitangent = bitangents[0];
+
+			tangent.x = coeff * (deltaUV1.y * edge0.x - deltaUV0.y * edge1.x);
+			tangent.y = coeff * (deltaUV1.y * edge0.y - deltaUV0.y * edge1.y);
+			tangent.z = coeff * (deltaUV1.y * edge0.z - deltaUV0.y * edge1.z);
+
+			bitangent.x = coeff * (-deltaUV1.x * edge0.x + deltaUV0.x * edge1.x);
+			bitangent.y = coeff * (-deltaUV1.x * edge0.y + deltaUV0.x * edge1.y);
+			bitangent.z = coeff * (-deltaUV1.x * edge0.z + deltaUV0.x * edge1.z);
+		}
+		
+		{
+			//Second triangle
+			glm::vec3 edge0 = pos3 - pos1;
+			glm::vec3 edge1 = pos4 - pos1;
+			glm::vec2 deltaUV0 = uv3 - uv1;
+			glm::vec2 deltaUV1 = uv4 - uv1;
+
+			float coeff = 1.0f / (deltaUV0.x * deltaUV1.y - deltaUV1.x * deltaUV0.y);
+
+			glm::vec3& tangent = tangents[1];
+			glm::vec3& bitangent = bitangents[1];
+
+			tangent.x = coeff * (deltaUV1.y * edge0.x - deltaUV0.y * edge1.x);
+			tangent.y = coeff * (deltaUV1.y * edge0.y - deltaUV0.y * edge1.y);
+			tangent.z = coeff * (deltaUV1.y * edge0.z - deltaUV0.y * edge1.z);
+
+			bitangent.x = coeff * (-deltaUV1.x * edge0.x + deltaUV0.x * edge1.x);
+			bitangent.y = coeff * (-deltaUV1.x * edge0.y + deltaUV0.x * edge1.y);
+			bitangent.z = coeff * (-deltaUV1.x * edge0.z + deltaUV0.x * edge1.z);
+		}
+		
+
+		float floorVertices[] = {
+			//Bottom plane
+			pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangents[0].x, tangents[0].y, tangents[0].z, bitangents[0].x, bitangents[0].y, bitangents[0].z,
+			pos2.x, pos2.y, pos2.z, nm.x, nm.y, nm.z, uv2.x, uv2.y, tangents[0].x, tangents[0].y, tangents[0].z, bitangents[0].x, bitangents[0].y, bitangents[0].z,
+			pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangents[0].x, tangents[0].y, tangents[0].z, bitangents[0].x, bitangents[0].y, bitangents[0].z,
+
+			pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangents[1].x, tangents[1].y, tangents[1].z, bitangents[1].x, bitangents[1].y, bitangents[1].z,
+			pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangents[1].x, tangents[1].y, tangents[1].z, bitangents[1].x, bitangents[1].y, bitangents[1].z,
+			pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangents[1].x, tangents[1].y, tangents[1].z, bitangents[1].x, bitangents[1].y, bitangents[1].z
 		};
 
 		unsigned int floorVao;
 		glGenVertexArrays(1, &floorVao);
+		glCheckError();
 		glBindVertexArray(floorVao);
-
+		glCheckError();
 		unsigned int floorVbo;
 		glGenBuffers(1, &floorVbo);
+		glCheckError();
 		glBindBuffer(GL_ARRAY_BUFFER, floorVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+		glCheckError();
+		glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+		glCheckError();
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(0));
+		glCheckError();
 		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glCheckError();
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
+		glCheckError();
 		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glCheckError();
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));
+		glCheckError();
 		glEnableVertexAttribArray(2);
+		glCheckError();
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));
+		glCheckError();
+		glEnableVertexAttribArray(3);
+		glCheckError();
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+		glCheckError();
+		glEnableVertexAttribArray(4);
+		glCheckError();
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glCheckError();
 		glBindVertexArray(0);
+		glCheckError();
 
 		//Texture object generation
 
-		unsigned int texture0ID;
-		glGenTextures(1, &texture0ID);
-		glBindTexture(GL_TEXTURE_2D, texture0ID);
+		unsigned int txDiffWall;
+		glGenTextures(1, &txDiffWall);
+		glBindTexture(GL_TEXTURE_2D, txDiffWall);
 
 		//set the texture wrapping/filtering options (on the currently bound texture object)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -899,7 +990,7 @@ int main()
 		{
 			int width, height, chaCount;
 			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\wood.png", &width, &height, &chaCount, 0);
+			unsigned char* data = stbi_load("Source\\Textures\\brickwall.jpg", &width, &height, &chaCount, 0);
 			if (data)
 			{
 				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
@@ -921,7 +1012,49 @@ int main()
 		glCheckError();
 
 
+		unsigned int txNormWall;
+		glGenTextures(1, &txNormWall);
+		glBindTexture(GL_TEXTURE_2D, txNormWall);
 
+		//set the texture wrapping/filtering options (on the currently bound texture object)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glCheckError();
+
+		{
+			stbi_set_flip_vertically_on_load(false);
+			int width, height, chaCount;
+			//TODO: Check how we are receiving the data!!!
+			unsigned char* data = stbi_load("Source\\Textures\\brickwall_normal.jpg", &width, &height, &chaCount, 0);
+			if (data)
+			{
+				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
+				//NOTE: It should be used for diffuse textures only!!! NO specular maps, NO  height maps, etc.!!!
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glCheckError();
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glCheckError();
+				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+			}
+			else
+			{
+				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			}
+			stbi_image_free(data);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glCheckError();
+
+		glEnable(GL_CULL_FACE);
+		glCheckError();
+		glCullFace(GL_BACK);
+		glCheckError();
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -934,29 +1067,16 @@ int main()
 			//lightRotateModel = glm::rotate(lightRotateModel, 10.0f * glm::radians((float)glfwGetTime()), glm::vec3(0, 1, 0));
 			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
 
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-			//Omnidirectional Shadow Mapping
-			glm::vec3 lightPos = glm::vec3(0.0f, 90.0f, 0.0f);
-			float aspect = 1.0f;
-			float near = 1.0f;
-			float far = 250.0f;
-			glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			glm::vec3 lightPos = glm::vec3(0.0f, 2.0f, 0.0f);
 
-			std::vector<glm::mat4> shadowTransforms;
-			//right
-			shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-			//left
-			shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-			//top
-			shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-			//bottom
-			shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-			//near
-			shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-			//far
-			shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+			glm::mat4 lightModelMatrix = glm::mat4(1.0f);
+			lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
 
-
+			glm::mat4 floorModelMatrix = glm::mat4(1.0f);
+			floorModelMatrix = glm::translate(floorModelMatrix, glm::vec3(0.0f, -5.0f, 0.0f));
+			floorModelMatrix = glm::rotate(floorModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			floorModelMatrix = glm::scale(floorModelMatrix, glm::vec3(10.0f, 10.0f, 10.0f));
 
 			glm::mat4 projection = camera.getProjectionMatrix();
 			glm::mat4 view = camera.getViewMatrix();
@@ -976,78 +1096,26 @@ int main()
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			glCheckError();
 
+			list.shaders[0].use();
 
-			glm::mat4 roomModelMatrix = glm::mat4(1.0f);
-			roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-			roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
-
-			glm::mat4 cubeModelMatrix0 = glm::mat4(1.0f);
-			cubeModelMatrix0 = glm::translate(cubeModelMatrix0, glm::vec3(-5.0f, -3.0f, 0.0f));
-			//cubeModelMatrix0 = glm::scale(cubeModelMatrix0, glm::vec3(1.0f, 50.0f, 50.0f));
-
-			glm::mat4 cubeModelMatrix1 = glm::mat4(1.0f);
-			cubeModelMatrix1 = glm::translate(cubeModelMatrix1, glm::vec3(4.0f, 0.0f, 0.0f));
-			cubeModelMatrix1 = glm::scale(cubeModelMatrix1, glm::vec3(2.0f, 2.0f, 2.0f));
-
-			glViewport(0, 0, shadWidth, shadHeight);
+			glViewport(0, 0, viewPortWidth, viewPortHeight);
 			glCheckError();
-			glBindFramebuffer(GL_FRAMEBUFFER, shadDB);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glCheckError();
 			glEnable(GL_DEPTH_TEST);
 			glCheckError();
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glCheckError();
-			glClear(GL_DEPTH_BUFFER_BIT);
-			glCheckError();
-
-			list.shaders[1].use();
-
-			for (int i = 0; i < shadowTransforms.size(); ++i)
-			{
-				list.shaders[1].setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-			}
-
-			list.shaders[1].setVec3("lightPos", lightPos);
-			list.shaders[1].setFloat("far_plane", far);
-
-			list.shaders[1].setMat4("modelMatrix", roomModelMatrix);
-			bpModel.Draw(list.shaders[1]);
-
-			//list.shaders[1].setMat4("modelMatrix", roomModelMatrix);
-			//
-			//glBindVertexArray(floorVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 30);
-			//glBindVertexArray(0);
-			//
-			//list.shaders[1].setMat4("modelMatrix", cubeModelMatrix0);
-			//
-			//glBindVertexArray(cubeVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 36);
-			//glBindVertexArray(0);
-			//
-			//
-			//list.shaders[1].setMat4("modelMatrix", cubeModelMatrix1);
-			//
-			//glBindVertexArray(cubeVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 36);
-			//glBindVertexArray(0);
-
-			list.shaders[0].use();
-			glViewport(0, 0, viewPortWidth, viewPortHeight);
-			glCheckError();
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glCheckError();
-
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glCheckError();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCheckError();
+			// 
+			//list.shaders[0].setInt("shadowMap", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
+			//glCheckError();
+			//list.shaders[0].setFloat("far", far);
 
-			list.shaders[0].setInt("shadowMap", 0);
-			glActiveTexture(GL_TEXTURE0);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
-			glCheckError();
 			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
 
 			list.shaders[0].setVec3("pLight.position", lightPos);
@@ -1060,24 +1128,179 @@ int main()
 			list.shaders[0].setFloat("pLight.l", 0.027f);
 			list.shaders[0].setFloat("pLight.q", 0.0028f);
 
-			//list.shaders[0].setFloat("specularColor", 1.0f);
 			list.shaders[0].setFloat("mat.shininess", 64.0f);
-			list.shaders[0].setFloat("far", far);
+			list.shaders[0].setFloat("specularColor", 0.5f);
 
-			//list.shaders[0].setInt("mat.texture_diffuse1", 1);
-			//glActiveTexture(GL_TEXTURE1);
+			list.shaders[0].setInt("mat.texture_diffuse1", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txDiffWall);
+			glCheckError();
+
+			list.shaders[0].setInt("mat.texture_normal1", 1);
+			glActiveTexture(GL_TEXTURE1);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txNormWall);
+			glCheckError();
+
+			list.shaders[0].setMat4("modelMatrix", floorModelMatrix);
+
+			glBindVertexArray(floorVao);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
+
+			list.shaders[3].use();
+			list.shaders[3].setMat4("modelMatrix", lightModelMatrix);
+
+			glBindVertexArray(cubeVao);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			////Omnidirectional Shadow Mapping
+			//glm::vec3 lightPos = glm::vec3(0.0f, 90.0f, 0.0f);
+			//float aspect = 1.0f;
+			//float near = 1.0f;
+			//float far = 250.0f;
+			//glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+			//
+			//std::vector<glm::mat4> shadowTransforms;
+			////right
+			//shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+			////left
+			//shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+			////top
+			//shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+			////bottom
+			//shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+			////near
+			//shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+			////far
+			//shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+			//
+			//
+			//
+			//glm::mat4 projection = camera.getProjectionMatrix();
+			//glm::mat4 view = camera.getViewMatrix();
+			//
+			//glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
 			//glCheckError();
-			//glBindTexture(GL_TEXTURE_2D, texture0ID);
+			//
+			//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 			//glCheckError();
+			//
+			//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			//glCheckError();
+			//
+			////glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightOrthoMatrix * lightViewMatrix));
+			////glCheckError();
+			//
+			//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			//glCheckError();
+			//
+			//
+			//glm::mat4 roomModelMatrix = glm::mat4(1.0f);
+			//roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+			//roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+			//
+			//glm::mat4 cubeModelMatrix0 = glm::mat4(1.0f);
+			//cubeModelMatrix0 = glm::translate(cubeModelMatrix0, glm::vec3(-5.0f, -3.0f, 0.0f));
+			////cubeModelMatrix0 = glm::scale(cubeModelMatrix0, glm::vec3(1.0f, 50.0f, 50.0f));
+			//
+			//glm::mat4 cubeModelMatrix1 = glm::mat4(1.0f);
+			//cubeModelMatrix1 = glm::translate(cubeModelMatrix1, glm::vec3(4.0f, 0.0f, 0.0f));
+			//cubeModelMatrix1 = glm::scale(cubeModelMatrix1, glm::vec3(2.0f, 2.0f, 2.0f));
+			//
+			//glViewport(0, 0, shadWidth, shadHeight);
+			//glCheckError();
+			//glBindFramebuffer(GL_FRAMEBUFFER, shadDB);
+			//glCheckError();
+			//glEnable(GL_DEPTH_TEST);
+			//glCheckError();
+			//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			//glCheckError();
+			//glClear(GL_DEPTH_BUFFER_BIT);
+			//glCheckError();
+			//
+			//list.shaders[1].use();
+			//
+			//for (int i = 0; i < shadowTransforms.size(); ++i)
+			//{
+			//	list.shaders[1].setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+			//}
+			//
+			//list.shaders[1].setVec3("lightPos", lightPos);
+			//list.shaders[1].setFloat("far_plane", far);
+			//
+			//list.shaders[1].setMat4("modelMatrix", roomModelMatrix);
+			//bpModel.Draw(list.shaders[1]);
+			//
+			////list.shaders[1].setMat4("modelMatrix", roomModelMatrix);
+			////
+			////glBindVertexArray(floorVao);
+			////glDrawArrays(GL_TRIANGLES, 0, 30);
+			////glBindVertexArray(0);
+			////
+			////list.shaders[1].setMat4("modelMatrix", cubeModelMatrix0);
+			////
+			////glBindVertexArray(cubeVao);
+			////glDrawArrays(GL_TRIANGLES, 0, 36);
+			////glBindVertexArray(0);
+			////
+			////
+			////list.shaders[1].setMat4("modelMatrix", cubeModelMatrix1);
+			////
+			////glBindVertexArray(cubeVao);
+			////glDrawArrays(GL_TRIANGLES, 0, 36);
+			////glBindVertexArray(0);
+			//
+			//list.shaders[0].use();
+			//glViewport(0, 0, viewPortWidth, viewPortHeight);
+			//glCheckError();
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//glCheckError();
+			//
+			//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			//glCheckError();
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glCheckError();
+			//
+			//list.shaders[0].setInt("shadowMap", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
+			//glCheckError();
+			//list.shaders[0].setVec3("viewPos", camera.getCameraPos());
+			//
+			//list.shaders[0].setVec3("pLight.position", lightPos);
+			//list.shaders[0].setVec3("pLight.ambient", glm::vec3(0.1, 0.1, 0.1));
+			//list.shaders[0].setVec3("pLight.diffuse", glm::vec3(0.5, 0.5, 0.5));
+			//list.shaders[0].setVec3("pLight.specular", glm::vec3(1.0, 1.0, 1.0));
+			//
+			////NOTE:Alex 65 meters falloff
+			//list.shaders[0].setFloat("pLight.c", 1.0f);
+			//list.shaders[0].setFloat("pLight.l", 0.027f);
+			//list.shaders[0].setFloat("pLight.q", 0.0028f);
+			//
+			////list.shaders[0].setFloat("specularColor", 1.0f);
+			//list.shaders[0].setFloat("mat.shininess", 64.0f);
+			//list.shaders[0].setFloat("far", far);
+			//
+			////list.shaders[0].setInt("mat.texture_diffuse1", 1);
+			////glActiveTexture(GL_TEXTURE1);
+			////glCheckError();
+			////glBindTexture(GL_TEXTURE_2D, txWood);
+			////glCheckError();
+			//
+			//list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
+			//bpModel.Draw(list.shaders[0]);
 
-			list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
-			bpModel.Draw(list.shaders[0]);
-
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			//list.shaders[2].use();
 			//list.shaders[2].setMat4("modelMatrix", roomModelMatrix);
 			//bpModel.Draw(list.shaders[2]);
-			
+
 
 			//
 			//glBindVertexArray(floorVao);
@@ -1106,7 +1329,7 @@ int main()
 
 			//list.shaders[2].setInt("mat.texture_diffuse1", 0);
 			//glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, texture0ID);
+			//glBindTexture(GL_TEXTURE_2D, txWood);
 
 			//list.shaders[2].setInt("shadowMap", 1);
 			//glActiveTexture(GL_TEXTURE1);
@@ -1144,9 +1367,9 @@ int main()
 			///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-			//DrawFloor(list.shaders[0], floorVao, texture0ID, phongModel);
+			//DrawFloor(list.shaders[0], floorVao, txWood, phongModel);
 
-			//DrawFloor(blinnPhongShader, floorVao, texture0ID, blinnPhongModel);
+			//DrawFloor(blinnPhongShader, floorVao, txWood, blinnPhongModel);
 
 			//
 			//lightShader.use();
