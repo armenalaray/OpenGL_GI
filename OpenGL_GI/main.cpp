@@ -353,7 +353,7 @@ int main()
 		//Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
 		//Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
 
-		//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
+		Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 
 		//float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -807,7 +807,32 @@ int main()
 		glCheckError();
 		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 		glCheckError();
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+		//NOTE: offset must be a multiple of GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0 * GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, 2 * sizeof(glm::mat4));
+		glCheckError();
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glCheckError();
+
+		for (Shader shader : list.shaders)
+		{
+			unsigned int bi = glGetUniformBlockIndex(shader.ID, "Lights");
+			glCheckError();
+			if (bi != GL_INVALID_INDEX)
+			{
+				glUniformBlockBinding(shader.ID, bi, 1);
+				glCheckError();
+			}
+		}
+
+		unsigned int uboLights;
+		glGenBuffers(1, &uboLights);
+		glCheckError();
+		glBindBuffer(GL_UNIFORM_BUFFER, uboLights);
+		glCheckError();
+		glBufferData(GL_UNIFORM_BUFFER, 20 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+		glCheckError();
+		//NOTE: offset must be a multiple of GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT
+		glBindBufferRange(GL_UNIFORM_BUFFER, 1, uboLights, 0 * GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, 20 * sizeof(GLfloat));
 		glCheckError();
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glCheckError();
@@ -1078,6 +1103,10 @@ int main()
 			floorModelMatrix = glm::rotate(floorModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			floorModelMatrix = glm::scale(floorModelMatrix, glm::vec3(10.0f, 10.0f, 10.0f));
 
+			glm::mat4 roomModelMatrix = glm::mat4(1.0f);
+			roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+			roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+
 			glm::mat4 projection = camera.getProjectionMatrix();
 			glm::mat4 view = camera.getViewMatrix();
 
@@ -1092,6 +1121,31 @@ int main()
 
 			//glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightOrthoMatrix * lightViewMatrix));
 			//glCheckError();
+
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			glCheckError();
+			
+			GLintptr N = sizeof(GLfloat);
+
+			glBindBuffer(GL_UNIFORM_BUFFER, uboLights);
+			glCheckError();
+
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec4), glm::value_ptr(lightPos));
+			glCheckError();
+
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.1, 0.1, 0.1)));
+			glCheckError();
+
+			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+			glCheckError();
+			
+			glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
+			glCheckError();
+
+			glm::vec3 clq = glm::vec3(1.0f, 0.027f, 0.0028f);
+
+			glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(clq));
+			glCheckError();
 
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			glCheckError();
@@ -1116,38 +1170,42 @@ int main()
 			//glCheckError();
 			//list.shaders[0].setFloat("far", far);
 
+			//
+			//list.shaders[0].setVec3("lightPos", lightPos);
+			//list.shaders[0].setVec3("pLight.ambient", glm::vec3(0.1, 0.1, 0.1));
+			//list.shaders[0].setVec3("pLight.diffuse", glm::vec3(0.5, 0.5, 0.5));
+			//list.shaders[0].setVec3("pLight.specular", glm::vec3(1.0, 1.0, 1.0));
+			//
+			////NOTE:Alex 65 meters falloff
+			//list.shaders[0].setFloat("pLight.c", 1.0f);
+			//list.shaders[0].setFloat("pLight.l", 0.027f);
+			//list.shaders[0].setFloat("pLight.q", 0.0028f);
+
+
 			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
-
-			list.shaders[0].setVec3("pLight.position", lightPos);
-			list.shaders[0].setVec3("pLight.ambient", glm::vec3(0.1, 0.1, 0.1));
-			list.shaders[0].setVec3("pLight.diffuse", glm::vec3(0.5, 0.5, 0.5));
-			list.shaders[0].setVec3("pLight.specular", glm::vec3(1.0, 1.0, 1.0));
-
-			//NOTE:Alex 65 meters falloff
-			list.shaders[0].setFloat("pLight.c", 1.0f);
-			list.shaders[0].setFloat("pLight.l", 0.027f);
-			list.shaders[0].setFloat("pLight.q", 0.0028f);
-
 			list.shaders[0].setFloat("mat.shininess", 64.0f);
-			list.shaders[0].setFloat("specularColor", 0.5f);
+			list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
+			
+			bpModel.Draw(list.shaders[0]);
 
-			list.shaders[0].setInt("mat.texture_diffuse1", 0);
-			glActiveTexture(GL_TEXTURE0);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, txDiffWall);
-			glCheckError();
+			//list.shaders[0].setFloat("specularColor", 1.0f);
 
-			list.shaders[0].setInt("mat.texture_normal1", 1);
-			glActiveTexture(GL_TEXTURE1);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, txNormWall);
-			glCheckError();
+			//list.shaders[0].setInt("mat.texture_diffuse1", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_2D, txDiffWall);
+			//glCheckError();
+			//
+			//list.shaders[0].setInt("mat.texture_normal1", 1);
+			//glActiveTexture(GL_TEXTURE1);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_2D, txNormWall);
+			//glCheckError();
 
-			list.shaders[0].setMat4("modelMatrix", floorModelMatrix);
 
-			glBindVertexArray(floorVao);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
+			//glBindVertexArray(floorVao);
+			//glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glBindVertexArray(0);
 
 			list.shaders[3].use();
 			list.shaders[3].setMat4("modelMatrix", lightModelMatrix);
