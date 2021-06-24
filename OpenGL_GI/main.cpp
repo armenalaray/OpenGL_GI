@@ -340,6 +340,7 @@ int main()
 	list.shaders.push_back(Shader("CubeDepthMap.vert", "CubeDepthMap.frag", "CubeDepthMap.geom"));
 	list.shaders.push_back(Shader("DisplayNormal.vert", "DisplayNormal.frag", "DisplayNormal.geom"));
 	list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
+	list.shaders.push_back(Shader("Parallax.vert", "Parallax.frag"));
 
 	if (list.ShadersAreValid())
 	{
@@ -353,7 +354,7 @@ int main()
 		//Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
 		//Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
 
-		Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
+		//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\sponza\\sponza.obj");
 
 
 		//float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -1013,9 +1014,10 @@ int main()
 		glCheckError();
 
 		{
+			stbi_set_flip_vertically_on_load(false);
 			int width, height, chaCount;
 			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\brickwall.jpg", &width, &height, &chaCount, 0);
+			unsigned char* data = stbi_load("Source\\Textures\\wood_diff.png", &width, &height, &chaCount, 0);
 			if (data)
 			{
 				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
@@ -1055,12 +1057,67 @@ int main()
 			stbi_set_flip_vertically_on_load(false);
 			int width, height, chaCount;
 			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\brickwall_normal.jpg", &width, &height, &chaCount, 0);
+			unsigned char* data = stbi_load("Source\\Textures\\wood_normal.png", &width, &height, &chaCount, 0);
 			if (data)
 			{
+				GLenum format;
+				if (chaCount == 1)
+					format = GL_RED;
+				else if (chaCount == 3)
+					format = GL_RGB;
+				else if (chaCount == 4)
+					format = GL_RGBA;
+
 				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
 				//NOTE: It should be used for diffuse textures only!!! NO specular maps, NO  height maps, etc.!!!
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+				glCheckError();
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glCheckError();
+				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+			}
+			else
+			{
+				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			}
+			stbi_image_free(data);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glCheckError();
+
+		unsigned int txDispWall;
+		glGenTextures(1, &txDispWall);
+		glBindTexture(GL_TEXTURE_2D, txDispWall);
+
+		//set the texture wrapping/filtering options (on the currently bound texture object)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glCheckError();
+
+		{
+			stbi_set_flip_vertically_on_load(false);
+			int width, height, chaCount;
+			//TODO: Check how we are receiving the data!!!
+			unsigned char* data = stbi_load("Source\\Textures\\wood_height.png", &width, &height, &chaCount, 0);
+			if (data)
+			{
+				GLenum format;
+				if (chaCount == 1)
+					format = GL_RED;
+				else if (chaCount == 3)
+					format = GL_RGB;
+				else if (chaCount == 4)
+					format = GL_RGBA;
+
+				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
+				//NOTE: It should be used for diffuse textures only!!! NO specular maps, NO  height maps, etc.!!!
+				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 				glCheckError();
 				glGenerateMipmap(GL_TEXTURE_2D);
 				glCheckError();
@@ -1093,10 +1150,11 @@ int main()
 			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
 
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
-			glm::vec3 lightPos = glm::vec3(0.0f, 2.0f, 0.0f);
+			glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
 
 			glm::mat4 lightModelMatrix = glm::mat4(1.0f);
 			lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
+			lightModelMatrix = glm::scale(lightModelMatrix, glm::vec3(0.2,0.2,0.2));
 
 			glm::mat4 floorModelMatrix = glm::mat4(1.0f);
 			floorModelMatrix = glm::translate(floorModelMatrix, glm::vec3(0.0f, -5.0f, 0.0f));
@@ -1105,7 +1163,7 @@ int main()
 
 			glm::mat4 roomModelMatrix = glm::mat4(1.0f);
 			roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-			roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+			roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
 			glm::mat4 projection = camera.getProjectionMatrix();
 			glm::mat4 view = camera.getViewMatrix();
@@ -1136,13 +1194,14 @@ int main()
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.1, 0.1, 0.1)));
 			glCheckError();
 
-			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
 			glCheckError();
 			
 			glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
 			glCheckError();
 
 			glm::vec3 clq = glm::vec3(1.0f, 0.027f, 0.0028f);
+			//glm::vec3 clq = glm::vec3(1.0f, 0.35f, 0.44f);
 
 			glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(clq));
 			glCheckError();
@@ -1150,7 +1209,7 @@ int main()
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			glCheckError();
 
-			list.shaders[0].use();
+			list.shaders[4].use();
 
 			glViewport(0, 0, viewPortWidth, viewPortHeight);
 			glCheckError();
@@ -1162,7 +1221,7 @@ int main()
 			glCheckError();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCheckError();
-			// 
+			 
 			//list.shaders[0].setInt("shadowMap", 0);
 			//glActiveTexture(GL_TEXTURE0);
 			//glCheckError();
@@ -1170,42 +1229,35 @@ int main()
 			//glCheckError();
 			//list.shaders[0].setFloat("far", far);
 
-			//
-			//list.shaders[0].setVec3("lightPos", lightPos);
-			//list.shaders[0].setVec3("pLight.ambient", glm::vec3(0.1, 0.1, 0.1));
-			//list.shaders[0].setVec3("pLight.diffuse", glm::vec3(0.5, 0.5, 0.5));
-			//list.shaders[0].setVec3("pLight.specular", glm::vec3(1.0, 1.0, 1.0));
-			//
-			////NOTE:Alex 65 meters falloff
-			//list.shaders[0].setFloat("pLight.c", 1.0f);
-			//list.shaders[0].setFloat("pLight.l", 0.027f);
-			//list.shaders[0].setFloat("pLight.q", 0.0028f);
+			list.shaders[4].setVec3("viewPos", camera.getCameraPos());
+			list.shaders[4].setFloat("mat.shininess", 32.0f);
 
+			list.shaders[4].setFloat("specularColor", 0.01f);
+			list.shaders[4].setFloat("height_scale", 0.5f);
 
-			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
-			list.shaders[0].setFloat("mat.shininess", 64.0f);
-			list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
+			list.shaders[4].setInt("mat.texture_diffuse1", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txDiffWall);
+			glCheckError();
 			
-			bpModel.Draw(list.shaders[0]);
+			list.shaders[4].setInt("mat.texture_normal1", 1);
+			glActiveTexture(GL_TEXTURE1);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txNormWall);
+			glCheckError();
 
-			//list.shaders[0].setFloat("specularColor", 1.0f);
+			list.shaders[4].setInt("mat.texture_height1", 2);
+			glActiveTexture(GL_TEXTURE2);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txDispWall);
+			glCheckError();
 
-			//list.shaders[0].setInt("mat.texture_diffuse1", 0);
-			//glActiveTexture(GL_TEXTURE0);
-			//glCheckError();
-			//glBindTexture(GL_TEXTURE_2D, txDiffWall);
-			//glCheckError();
-			//
-			//list.shaders[0].setInt("mat.texture_normal1", 1);
-			//glActiveTexture(GL_TEXTURE1);
-			//glCheckError();
-			//glBindTexture(GL_TEXTURE_2D, txNormWall);
-			//glCheckError();
+			list.shaders[4].setMat4("modelMatrix", floorModelMatrix);
 
-
-			//glBindVertexArray(floorVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 6);
-			//glBindVertexArray(0);
+			glBindVertexArray(floorVao);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
 
 			list.shaders[3].use();
 			list.shaders[3].setMat4("modelMatrix", lightModelMatrix);

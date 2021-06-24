@@ -211,5 +211,11 @@
     <None Include="DebugLightPos.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Parallax.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Parallax.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
