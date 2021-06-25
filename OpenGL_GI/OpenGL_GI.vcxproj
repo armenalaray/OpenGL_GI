@@ -185,6 +185,8 @@
     <None Include="FrameBufferQuad.frag" />
     <None Include="FrameBufferQuad.vert" />
     <None Include="GreenCube.frag" />
+    <None Include="HDR.frag" />
+    <None Include="HDR.vert" />
     <None Include="House.frag" />
     <None Include="House.geom" />
     <None Include="House.vert" />
@@ -192,6 +194,8 @@
     <None Include="DebugLightPos.vert" />
     <None Include="LightDepth.frag" />
     <None Include="LightDepth.vert" />
+    <None Include="Lighting.frag" />
+    <None Include="Lighting.vert" />
     <None Include="Object.frag" />
     <None Include="Object.vert" />
     <None Include="ObjectNormal.frag" />

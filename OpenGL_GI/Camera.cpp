@@ -27,7 +27,7 @@ Camera::Camera(int viewPortWidth_, int viewPortHeight_)
 
 	fov = 45.0f;
 	nearPlane = 0.1f;
-	farPlane = 1000.0f;
+	farPlane = 100.0f;
 }
 
 

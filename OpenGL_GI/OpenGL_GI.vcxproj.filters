@@ -217,5 +217,17 @@
     <None Include="Parallax.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Lighting.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Lighting.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="HDR.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="HDR.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

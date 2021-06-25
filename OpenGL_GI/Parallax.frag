@@ -142,7 +142,12 @@ vec2 ParallaxMapping(vec3 tangentViewDir, vec2 texCoords)
 
 vec2 SteepParallaxMapping(vec3 tangentViewDir, vec2 texCoords)
 {
-	int layerCount = 100;
+	const float minLayerCount = 10;
+	const float maxLayerCount = 100;
+	float t = max(dot(vec3(0.0,0.0,1.0),tangentViewDir),0.0);
+//	float layerCount = mix(maxLayerCount, minLayerCount, t);
+	float layerCount = 50.0f;
+
 	float layerDepth = 1.0f / layerCount;
 	float currentLayerDepth = 0.0f;
 
@@ -162,6 +167,41 @@ vec2 SteepParallaxMapping(vec3 tangentViewDir, vec2 texCoords)
 	return currentTexCoords;
 }
 
+vec2 ParallaxOcclussionMapping(vec3 tangentViewDir, vec2 texCoords)
+{
+	const float minLayerCount = 8;
+	const float maxLayerCount = 100;
+	float t = max(dot(vec3(0.0,0.0,1.0),tangentViewDir),0.0);
+	float layerCount = mix(maxLayerCount, minLayerCount, t);
+
+	float layerDepth = 1.0f / layerCount;
+	float currentLayerDepth = 0.0f;
+
+	//NOTE: this is arbitrary we control how much we move the whole p with height_scale!!!
+	vec2 p = tangentViewDir.xy * height_scale;
+	vec2 deltaTexCoords = p / layerCount;
+
+	vec2 currentTexCoords = texCoords;
+	float currentDepthMapValue = texture(mat.texture_height1, currentTexCoords).r;
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoords -= deltaTexCoords;
+		currentDepthMapValue = texture(mat.texture_height1, currentTexCoords).r;
+		currentLayerDepth += layerDepth;
+	}
+	
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+	float prevDepthMapValue = texture(mat.texture_height1, prevTexCoords).r;
+
+	float afterDepth = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = prevDepthMapValue - currentLayerDepth;
+
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0f - weight);
+	
+	return currentTexCoords;
+}
+
 vec3 calcPointLightComp(Point_Light light)
 {
 	vec3 tangentlightDir = vec3(0,0,0);
@@ -172,7 +212,9 @@ vec3 calcPointLightComp(Point_Light light)
 	vec3 tangentViewDir = normalize(fsIn.tangentViewPos - fsIn.tangentFragPos);
 
 //	vec2 texCoords = ParallaxMapping(tangentViewDir, fsIn.texCoords);
-	vec2 texCoords = SteepParallaxMapping(tangentViewDir, fsIn.texCoords);
+//	vec2 texCoords = SteepParallaxMapping(tangentViewDir, fsIn.texCoords);
+	vec2 texCoords = ParallaxOcclussionMapping(tangentViewDir, fsIn.texCoords);
+
 	if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0)
 		discard;
 
