@@ -56,14 +56,17 @@ define material properties specific to each surface!!!
 
 struct FrameBuffer
 {
+	unsigned int width;
+	unsigned int height;
 	unsigned int id;
 	unsigned int texColorBufferID;
 	unsigned int renderBuffDepthStencilBufferID;
 };
 
 
-int viewPortWidth = 800;
-int viewPortHeight = 600;
+float aspectRatio = 16.0f / 9.0f;
+int viewPortHeight = 1024;
+int viewPortWidth = viewPortHeight * aspectRatio;
 
 float deltaTime = 0.0f;
 float currentFrame = 0.0f;
@@ -74,8 +77,11 @@ bool fKeyPressed = false;
 
 bool hdr = true;
 bool hdrKeyPressed = false;
+float exposure = 1.0f;
 
 Camera camera(viewPortWidth, viewPortHeight);
+
+FrameBuffer hdrFB;
 
 //void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 //{
@@ -118,61 +124,6 @@ Camera camera(viewPortWidth, viewPortHeight);
 //	std::cout << std::endl;
 //}
 
-//void CreateFrameBuffer(int width, int height)
-//{
-//	//FrameBuffer creation!
-//
-//	glGenFramebuffers(1, &fb.id);
-//	glCheckError();
-//	glBindFramebuffer(GL_FRAMEBUFFER, fb.id);
-//	glCheckError();
-//
-//	glGenTextures(1, &fb.texColorBufferID);
-//	glCheckError();
-//	glBindTexture(GL_TEXTURE_2D, fb.texColorBufferID);
-//	glCheckError();
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-//	glCheckError();
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//	glCheckError();
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	glCheckError();
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//	glCheckError();
-//
-//	glGenRenderbuffers(1, &fb.renderBuffDepthStencilBufferID);
-//	glCheckError();
-//	glBindRenderbuffer(GL_RENDERBUFFER, fb.renderBuffDepthStencilBufferID);
-//	glCheckError();
-//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-//	glCheckError();
-//	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-//	glCheckError();
-//
-//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texColorBufferID, 0);
-//	glCheckError();
-//	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb.renderBuffDepthStencilBufferID);
-//	glCheckError();
-//
-//	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-//	else
-//		std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
-//
-//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//	glCheckError();
-//}
-//
-//void DeleteFrameBuffer()
-//{
-//	glDeleteBuffers(1, &fb.texColorBufferID);
-//	glCheckError();
-//	glDeleteBuffers(1, &fb.renderBuffDepthStencilBufferID);
-//	glCheckError();
-//	glDeleteFramebuffers(1, &fb.id);
-//	glCheckError();
-//}
-
 extern float calcDeltaTime()
 {
 	currentFrame = (float)glfwGetTime();
@@ -185,11 +136,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	viewPortHeight = height;
 	viewPortWidth = width;
-	glViewport(0, 0, viewPortWidth, viewPortHeight);
 	camera.setViewPort(viewPortWidth, viewPortHeight);
-
-	//DeleteFrameBuffer();
-	//CreateFrameBuffer(width, height);
+	//glViewport(0, 0, viewPortWidth, viewPortHeight);
 }
 
 //NOTE: xpos and ypos are screen pixel coordinates. 800 width * 600 height.
@@ -204,7 +152,12 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
 	//if (specularExp < 1) specularExp = 1;
 	//if (specularExp > 1200) specularExp = 1200;
 
-	camera.scroll(xOffset, yOffset);
+	float scale = 0.1f;
+	exposure += (float)yOffset * scale;
+	if (exposure < 0) exposure = 0;
+	if (exposure > 10) exposure = 10;
+
+	//camera.scroll(xOffset, yOffset);
 }
 
 void process_input(GLFWwindow* window)
@@ -279,6 +232,8 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
+
+	GLFWmonitor* primary = glfwGetPrimaryMonitor();
 
 	//Mac OSX needs this!!!!!!!!
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -1190,7 +1145,11 @@ int main()
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		//NOTE: HDR FrameBuffer
-		FrameBuffer hdrFB;
+		hdrFB.height = viewPortHeight;
+		hdrFB.width = viewPortWidth;
+		//hdrFB.height = 1024;
+		//hdrFB.width = (int)(aspectRatio * hdrFB.height);
+
 		glGenFramebuffers(1, &hdrFB.id);
 		glCheckError();
 		glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
@@ -1233,15 +1192,17 @@ int main()
 
 		std::vector<glm::vec3> lightPositions;
 		lightPositions.push_back(glm::vec3(0.0f, 0.0f, -17.0f)); // back light
-		lightPositions.push_back(glm::vec3(0.0f, 0.0f, -12.0f));
-		lightPositions.push_back(glm::vec3(0.8f, 0.0f, -9.0f));
-		lightPositions.push_back(glm::vec3(0.0f, 0.0f, -7.0f));
+		lightPositions.push_back(glm::vec3(2.4f, 0.0f, -12.0f));
+		lightPositions.push_back(glm::vec3(-2.4f, 0.0f, -9.0f));
+		lightPositions.push_back(glm::vec3(2.4f, -2.4f, -7.0f));
 		// colors
 		std::vector<glm::vec3> lightColors;
 		lightColors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
 		lightColors.push_back(glm::vec3(1.1f, 0.0f, 0.0f));
 		lightColors.push_back(glm::vec3(0.0f, 1.1f, 0.0f));
 		lightColors.push_back(glm::vec3(0.0f, 0.0f, 1.2f));
+
+		glm::mat4 originalProjection = camera.getProjectionMatrix();
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -1268,7 +1229,9 @@ int main()
 			//glm::mat4 roomModelMatrix = glm::mat4(1.0f);
 			//roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 			//roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
-
+			
+			glViewport(0, 0, hdrFB.width, hdrFB.height);
+			
 			glm::mat4 tunnelModelMatrix = glm::mat4(1.0f);
 			tunnelModelMatrix = glm::translate(tunnelModelMatrix, glm::vec3(0.0, 0.0, 0.0));
 			tunnelModelMatrix = glm::scale(tunnelModelMatrix, glm::vec3(2.5f, 2.5f, 20.0f));
@@ -1348,6 +1311,7 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
+			glViewport(0, 0, viewPortWidth, viewPortHeight);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glCheckError();
@@ -1358,8 +1322,10 @@ int main()
 
 			list.shaders[1].use();
 
-			list.shaders[1].setInt("hdrBuffer", 0);
 			list.shaders[1].setBool("hdr", hdr);
+			list.shaders[1].setFloat("exposure", exposure);
+
+			list.shaders[1].setInt("hdrBuffer", 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, hdrFB.texColorBufferID);
 
