@@ -64,9 +64,9 @@ struct FrameBuffer
 };
 
 
-float aspectRatio = 16.0f / 9.0f;
-int viewPortHeight = 1024;
-int viewPortWidth = viewPortHeight * aspectRatio;
+//float aspectRatio = 16.0f / 9.0f;
+int viewPortHeight = 600;
+int viewPortWidth = 800;
 
 float deltaTime = 0.0f;
 float currentFrame = 0.0f;
@@ -137,7 +137,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	viewPortHeight = height;
 	viewPortWidth = width;
 	camera.setViewPort(viewPortWidth, viewPortHeight);
-	//glViewport(0, 0, viewPortWidth, viewPortHeight);
 }
 
 //NOTE: xpos and ypos are screen pixel coordinates. 800 width * 600 height.
@@ -1145,10 +1144,8 @@ int main()
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		//NOTE: HDR FrameBuffer
-		hdrFB.height = viewPortHeight;
-		hdrFB.width = viewPortWidth;
-		//hdrFB.height = 1024;
-		//hdrFB.width = (int)(aspectRatio * hdrFB.height);
+		hdrFB.height = 720;
+		hdrFB.width = 1280;
 
 		glGenFramebuffers(1, &hdrFB.id);
 		glCheckError();
@@ -1159,7 +1156,7 @@ int main()
 		glCheckError();
 		glBindTexture(GL_TEXTURE_2D, hdrFB.texColorBufferID);
 		glCheckError();
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, viewPortWidth, viewPortHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, hdrFB.width, hdrFB.height, 0, GL_RGBA, GL_FLOAT, NULL);
 		glCheckError();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glCheckError();
@@ -1172,7 +1169,7 @@ int main()
 		glCheckError();
 		glBindRenderbuffer(GL_RENDERBUFFER, hdrFB.renderBuffDepthStencilBufferID);
 		glCheckError();
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, viewPortWidth, viewPortHeight);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, hdrFB.width, hdrFB.height);
 		glCheckError();
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		glCheckError();
