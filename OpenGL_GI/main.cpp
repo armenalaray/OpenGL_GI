@@ -300,15 +300,15 @@ int main()
 	//Shader blinnPhongShader("BlinnPhong.vert", "BlinnPhong.frag");
 
 	ShaderList list;
-	list.shaders.push_back(Shader("Lighting.vert", "Lighting.frag"));
-	list.shaders.push_back(Shader("HDR.vert", "HDR.frag"));
+	list.shaders.push_back(Shader("Parallax.vert", "Parallax.frag"));
+	list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
+	//list.shaders.push_back(Shader("Phong.vert", "Phong.frag"));
+	//list.shaders.push_back(Shader("Lighting.vert", "Lighting.frag"));
+	//list.shaders.push_back(Shader("HDR.vert", "HDR.frag"));
 	//list.shaders.push_back(Shader("LightDepth.vert", "LightDepth.frag"));
 	//list.shaders.push_back(Shader("DepthBufferQuad.vert", "DepthBufferQuad.frag"));
-	//list.shaders.push_back(Shader("Phong.vert", "Phong.frag"));
 	//list.shaders.push_back(Shader("CubeDepthMap.vert", "CubeDepthMap.frag", "CubeDepthMap.geom"));
 	//list.shaders.push_back(Shader("DisplayNormal.vert", "DisplayNormal.frag", "DisplayNormal.geom"));
-	//list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
-	//list.shaders.push_back(Shader("Parallax.vert", "Parallax.frag"));
 
 	if (list.ShadersAreValid())
 	{
@@ -894,7 +894,36 @@ int main()
 			roomHalfWidth,  10.0f, -roomHalfWidth,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f
 		};
 
+		unsigned int roomVao;
+		glGenVertexArrays(1, &roomVao);
+		glCheckError();
+		glBindVertexArray(roomVao);
+		glCheckError();
+		unsigned int roomVbo;
+		glGenBuffers(1, &roomVbo);
+		glCheckError();
+		glBindBuffer(GL_ARRAY_BUFFER, roomVbo);
+		glCheckError();
+		glBufferData(GL_ARRAY_BUFFER, sizeof(roomVertices), roomVertices, GL_STATIC_DRAW);
+		glCheckError();
 
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+		glCheckError();
+		glEnableVertexAttribArray(0);
+		glCheckError();
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glCheckError();
+		glEnableVertexAttribArray(1);
+		glCheckError();
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glCheckError();
+		glEnableVertexAttribArray(2);
+		glCheckError();
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glCheckError();
+		glBindVertexArray(0);
+		glCheckError();
 
 		// positions
 		glm::vec3 pos1(-1.0, 1.0, 0.0);
@@ -1212,22 +1241,21 @@ int main()
 			//lightRotateModel = glm::rotate(lightRotateModel, 10.0f * glm::radians((float)glfwGetTime()), glm::vec3(0, 1, 0));
 			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
-			//glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
-			//
-			//glm::mat4 lightModelMatrix = glm::mat4(1.0f);
-			//lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
-			//lightModelMatrix = glm::scale(lightModelMatrix, glm::vec3(0.2, 0.2, 0.2));
-			//
-			//glm::mat4 floorModelMatrix = glm::mat4(1.0f);
-			//floorModelMatrix = glm::translate(floorModelMatrix, glm::vec3(0.0f, -5.0f, 0.0f));
-			//floorModelMatrix = glm::rotate(floorModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			//floorModelMatrix = glm::scale(floorModelMatrix, glm::vec3(10.0f, 10.0f, 10.0f));
-			//
-			//glm::mat4 roomModelMatrix = glm::mat4(1.0f);
-			//roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-			//roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+			glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
 			
-			glViewport(0, 0, hdrFB.width, hdrFB.height);
+			glm::mat4 lightModelMatrix = glm::mat4(1.0f);
+			lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
+			lightModelMatrix = glm::scale(lightModelMatrix, glm::vec3(0.2, 0.2, 0.2));
+
+			glm::mat4 floorModelMatrix = glm::mat4(1.0f);
+			floorModelMatrix = glm::translate(floorModelMatrix, glm::vec3(0.0f, -5.0f, 0.0f));
+			floorModelMatrix = glm::rotate(floorModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			floorModelMatrix = glm::scale(floorModelMatrix, glm::vec3(10.0f, 10.0f, 10.0f));
+
+			glm::mat4 roomModelMatrix = glm::mat4(1.0f);
+			roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+			roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+			
 			
 			glm::mat4 tunnelModelMatrix = glm::mat4(1.0f);
 			tunnelModelMatrix = glm::translate(tunnelModelMatrix, glm::vec3(0.0, 0.0, 0.0));
@@ -1256,13 +1284,13 @@ int main()
 			glBindBuffer(GL_UNIFORM_BUFFER, uboLights);
 			glCheckError();
 
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec4), glm::value_ptr(lightPositions[0]));
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec4), glm::value_ptr(lightPos));
 			glCheckError();
 
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.1, 0.1, 0.1)));
 			glCheckError();
 
-			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(lightColors[0]));
+			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0,1.0,1.0)));
 			glCheckError();
 
 			glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
@@ -1277,118 +1305,152 @@ int main()
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			glCheckError();
 
-			glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			//Parallax Mapping!!!
+			list.shaders[0].use();
+
+			glViewport(0, 0, viewPortWidth, viewPortHeight);
+			glCheckError();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glCheckError();
 			glEnable(GL_DEPTH_TEST);
 			glCheckError();
-			glClearColor(0, 0, 0, 1.0f);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glCheckError();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCheckError();
 
-			list.shaders[0].use();
-
-
-			list.shaders[0].setInt("diffuseTexture", 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, txDiffWall);
-
-			// set lighting uniforms
-			for (unsigned int i = 0; i < lightPositions.size(); i++)
-			{
-				list.shaders[0].setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
-				list.shaders[0].setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
-			}
+			//list.shaders[0].setInt("shadowMap", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
+			//glCheckError();
+			//list.shaders[0].setFloat("far", far);
 
 			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
+			list.shaders[0].setFloat("mat.shininess", 32.0f);
 
-			list.shaders[0].setInt("inverse_normals", true);
-			list.shaders[0].setMat4("model", tunnelModelMatrix);
+			list.shaders[0].setFloat("specularColor", 0.01f);
+			list.shaders[0].setFloat("height_scale", 0.1f);
+
+			list.shaders[0].setInt("mat.texture_diffuse1", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txDiffWall);
+			glCheckError();
+
+			list.shaders[0].setInt("mat.texture_normal1", 1);
+			glActiveTexture(GL_TEXTURE1);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txNormWall);
+			glCheckError();
+
+			list.shaders[0].setInt("mat.texture_height1", 2);
+			glActiveTexture(GL_TEXTURE2);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, txDispWall);
+			glCheckError();
+
+			list.shaders[0].setMat4("modelMatrix", floorModelMatrix);
+
+			glBindVertexArray(floorVao);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
+
+			list.shaders[1].use();
+			list.shaders[1].setMat4("modelMatrix", lightModelMatrix);
+
 			glBindVertexArray(cubeVAO);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
-			glViewport(0, 0, viewPortWidth, viewPortHeight);
 
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glCheckError();
-			glClearColor(0, 0, 0, 1.0f);
-			glCheckError();
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glCheckError();
-
-			list.shaders[1].use();
-
-			list.shaders[1].setBool("hdr", hdr);
-			list.shaders[1].setFloat("exposure", exposure);
-
-			list.shaders[1].setInt("hdrBuffer", 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, hdrFB.texColorBufferID);
-
-			glBindVertexArray(quadVAO);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-			glBindVertexArray(0);
-
-
-			/////////////////////////////////////////////////////////////////////////////////////////////////////
-			//Parallax Mapping!!!
-			//list.shaders[4].use();
-			//
-			//glViewport(0, 0, viewPortWidth, viewPortHeight);
-			//glCheckError();
 			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			//glCheckError();
 			//glEnable(GL_DEPTH_TEST);
 			//glCheckError();
-			//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			//glClearColor(0, 0, 0, 1.0f);
 			//glCheckError();
 			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			//glCheckError();
 			//
-			////list.shaders[0].setInt("shadowMap", 0);
-			////glActiveTexture(GL_TEXTURE0);
-			////glCheckError();
-			////glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
-			////glCheckError();
-			////list.shaders[0].setFloat("far", far);
+			////glViewport(0, 0, hdrFB.width, hdrFB.height);
+			//glViewport(0, 0, viewPortWidth, viewPortHeight);
+			//glCheckError();
 			//
-			//list.shaders[4].setVec3("viewPos", camera.getCameraPos());
-			//list.shaders[4].setFloat("mat.shininess", 32.0f);
+			//list.shaders[0].use();
+			//list.shaders[0].setVec3("viewPos", camera.getCameraPos());
+			//list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
+			//list.shaders[0].setFloat("specularColor", 1.0f);
+			//list.shaders[0].setFloat("mat.shininess", 64.0f);
 			//
-			//list.shaders[4].setFloat("specularColor", 0.01f);
-			//list.shaders[4].setFloat("height_scale", 0.5f);
-			//
-			//list.shaders[4].setInt("mat.texture_diffuse1", 0);
-			//glActiveTexture(GL_TEXTURE0);
+			//list.shaders[0].setInt("mat.texture_diffuse1", 1);
+			//glActiveTexture(GL_TEXTURE1);
 			//glCheckError();
 			//glBindTexture(GL_TEXTURE_2D, txDiffWall);
 			//glCheckError();
 			//
-			//list.shaders[4].setInt("mat.texture_normal1", 1);
-			//glActiveTexture(GL_TEXTURE1);
-			//glCheckError();
-			//glBindTexture(GL_TEXTURE_2D, txNormWall);
-			//glCheckError();
-			//
-			//list.shaders[4].setInt("mat.texture_height1", 2);
-			//glActiveTexture(GL_TEXTURE2);
-			//glCheckError();
-			//glBindTexture(GL_TEXTURE_2D, txDispWall);
-			//glCheckError();
-			//
-			//list.shaders[4].setMat4("modelMatrix", floorModelMatrix);
-			//
-			//glBindVertexArray(floorVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glBindVertexArray(roomVao);
+			//glDrawArrays(GL_TRIANGLES, 0, 30);
 			//glBindVertexArray(0);
+
+			// 
+			//HDR rendering within cube with 3 bright lights!!!
+			//glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
+			//glCheckError();
+			//glEnable(GL_DEPTH_TEST);
+			//glCheckError();
+			//glClearColor(0, 0, 0, 1.0f);
+			//glCheckError();
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glCheckError();
 			//
-			//list.shaders[3].use();
-			//list.shaders[3].setMat4("modelMatrix", lightModelMatrix);
+			//list.shaders[0].use();
 			//
-			//glBindVertexArray(cubeVao);
+			//
+			//list.shaders[0].setInt("diffuseTexture", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glBindTexture(GL_TEXTURE_2D, txDiffWall);
+			//
+			//// set lighting uniforms
+			//for (unsigned int i = 0; i < lightPositions.size(); i++)
+			//{
+			//	list.shaders[0].setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
+			//	list.shaders[0].setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
+			//}
+			//
+			//list.shaders[0].setVec3("viewPos", camera.getCameraPos());
+			//
+			//list.shaders[0].setInt("inverse_normals", true);
+			//list.shaders[0].setMat4("model", tunnelModelMatrix);
+			//glBindVertexArray(cubeVAO);
 			//glDrawArrays(GL_TRIANGLES, 0, 36);
 			//glBindVertexArray(0);
+			//
+			//glViewport(0, 0, viewPortWidth, viewPortHeight);
+			//
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//glCheckError();
+			//glClearColor(0, 0, 0, 1.0f);
+			//glCheckError();
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glCheckError();
+			//
+			//list.shaders[1].use();
+			//
+			//list.shaders[1].setBool("hdr", hdr);
+			//list.shaders[1].setFloat("exposure", exposure);
+			//
+			//list.shaders[1].setInt("hdrBuffer", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glBindTexture(GL_TEXTURE_2D, hdrFB.texColorBufferID);
+			//
+			//glBindVertexArray(quadVAO);
+			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			//glBindVertexArray(0);
+
+
+			
 
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
 			////Omnidirectional Shadow Mapping
@@ -1530,119 +1592,6 @@ int main()
 			//bpModel.Draw(list.shaders[0]);
 
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-			//list.shaders[2].use();
-			//list.shaders[2].setMat4("modelMatrix", roomModelMatrix);
-			//bpModel.Draw(list.shaders[2]);
-
-
-			//
-			//glBindVertexArray(floorVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 30);
-			//glBindVertexArray(0);
-			//
-			//list.shaders[0].setMat4("modelMatrix", cubeModelMatrix0);
-			//
-			//glBindVertexArray(cubeVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 36);
-			//glBindVertexArray(0);
-			//
-			//
-			//list.shaders[0].setMat4("modelMatrix", cubeModelMatrix1);
-			//
-			//glBindVertexArray(cubeVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 36);
-			//glBindVertexArray(0);
-
-			//list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
-			//bpModel.Draw(list.shaders[0]);
-			//list.shaders[0].setMat4("modelMatrix", cubeModelMatrix0);
-			//bpModel.Draw(list.shaders[0]);
-			//list.shaders[0].setMat4("modelMatrix", cubeModelMatrix1);
-			//bpModel.Draw(list.shaders[0]);
-
-			//list.shaders[2].setInt("mat.texture_diffuse1", 0);
-			//glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, txWood);
-
-			//list.shaders[2].setInt("shadowMap", 1);
-			//glActiveTexture(GL_TEXTURE1);
-			//glBindTexture(GL_TEXTURE_2D, shadDBTexture);
-
-			//list.shaders[2].setVec3("viewPos", camera.getCameraPos());
-			//list.shaders[2].setVec3("dLight.direction", lightDir);
-			//list.shaders[2].setVec3("dLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-			//list.shaders[2].setVec3("dLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-			//list.shaders[2].setVec3("dLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-			//
-			//list.shaders[2].setFloat("mat.shininess", 64.0f);
-			//list.shaders[2].setFloat("specularColor", 1.0f);
-			//
-
-
-			//list.shaders[1].use();
-			//glViewport(0, 0, viewPortWidth, viewPortHeight);
-			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			//
-			////glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			////glCheckError();
-			////glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			////glCheckError();
-			//
-			//list.shaders[1].setInt("screenTexture", 0);
-			//glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, shadDBTexture);
-			//glBindVertexArray(quadVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 6);
-			//glBindVertexArray(0);
-
-
-
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-			//DrawFloor(list.shaders[0], floorVao, txWood, phongModel);
-
-			//DrawFloor(blinnPhongShader, floorVao, txWood, blinnPhongModel);
-
-			//
-			//lightShader.use();
-			//lightShader.setInt("texture_diffuse1", 0);
-			//glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, rockModel.textures_loaded[0].id);
-			//for (unsigned int i = 0; i < rockModel.meshes.size(); i++)
-			//{
-			//	glBindVertexArray(rockModel.meshes[i].VAO);
-			//	glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, asteroidCount);
-			//	glBindVertexArray(0);
-			//}
-
-
-
-			//glm::mat4 model = glm::mat4(1.0f);
-			//model = glm::translate(model, glm::vec3(0.0, 0.0, -0.5f));
-
-			//{
-			//	objectNormal.use();
-			//	unsigned int modelLoc = glGetUniformLocation(objectNormal.GetID(), "model");
-			//	glCheckError();
-			//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			//	glCheckError();
-			//
-			//	bpModel.Draw(objectNormal);
-			//}
-			//
-			//{
-			//	displayNormal.use();
-			//	unsigned int modelLoc = glGetUniformLocation(displayNormal.GetID(), "model");
-			//	glCheckError();
-			//	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			//	glCheckError();
-			//
-			//	bpModel.Draw(displayNormal);
-			//}
-			//explodeShader.setVar("time", (float)glfwGetTime());
-
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();

@@ -65,7 +65,7 @@ layout (std140) uniform Lights
 uniform samplerCube shadowMap;
 uniform Material mat;
 uniform float far;
-
+uniform float specularColor;
 
 out vec4 FragColor;
 
@@ -157,7 +157,7 @@ vec3 calcPointLightComp(Point_Light light)
 	
 	//NOTE: we skip alpha!!!
 	vec3 diffuseColor = texture(mat.texture_diffuse1, fsIn.texCoords).rgb;
-	float specularColor = texture(mat.texture_specular1, fsIn.texCoords).r;
+//	float specularColor = texture(mat.texture_specular1, fsIn.texCoords).r;
 	vec3 emissionColor = texture(mat.emission, fsIn.texCoords).rgb;
 	
 	vec3 specularLight = spotLightFallOff * specularColor * (specular * light.specular);
@@ -177,5 +177,5 @@ void main()
 	FragColor = vec4(res,1.0);
 	float gamma = 2.2;
 	FragColor.rgb = pow(FragColor.rgb,vec3(1.0/gamma));
-	//FragColor = vec4(pLight.clq,1.0);
+	//FragColor = vec4(vec3(1.0),1.0);
 }
