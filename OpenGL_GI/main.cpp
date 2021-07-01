@@ -54,13 +54,18 @@ We can use GL_TEXTURE0 + 8 for example.
 define material properties specific to each surface!!!
 */
 
-struct FrameBuffer
+struct Buffer2D
 {
 	unsigned int width;
 	unsigned int height;
 	unsigned int id;
-	unsigned int texColorBufferID;
-	unsigned int renderBuffDepthStencilBufferID;
+};
+
+struct FrameBuffer
+{
+	unsigned int id;
+	std::unique_ptr<Buffer2D[]> colorBuffers;
+	std::unique_ptr<Buffer2D[]> depthBuffers;
 };
 
 
@@ -80,8 +85,6 @@ bool hdrKeyPressed = false;
 float exposure = 1.0f;
 
 Camera camera(viewPortWidth, viewPortHeight);
-
-FrameBuffer hdrFB;
 
 //void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 //{
@@ -163,7 +166,7 @@ void process_input(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	
+
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !hdrKeyPressed)
 	{
 		hdr = !hdr;
@@ -302,9 +305,10 @@ int main()
 	ShaderList list;
 	list.shaders.push_back(Shader("Parallax.vert", "Parallax.frag"));
 	list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
+	list.shaders.push_back(Shader("HDR.vert", "HDR.frag"));
+	list.shaders.push_back(Shader("GaussianBlur.vert", "GaussianBlur.frag"));
 	//list.shaders.push_back(Shader("Phong.vert", "Phong.frag"));
 	//list.shaders.push_back(Shader("Lighting.vert", "Lighting.frag"));
-	//list.shaders.push_back(Shader("HDR.vert", "HDR.frag"));
 	//list.shaders.push_back(Shader("LightDepth.vert", "LightDepth.frag"));
 	//list.shaders.push_back(Shader("DepthBufferQuad.vert", "DepthBufferQuad.frag"));
 	//list.shaders.push_back(Shader("CubeDepthMap.vert", "CubeDepthMap.frag", "CubeDepthMap.geom"));
@@ -794,7 +798,7 @@ int main()
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
 
-		
+
 
 		//NOTE: Uniform buffer objects!!!!!!!!!!!!!!
 
@@ -1054,7 +1058,7 @@ int main()
 			stbi_set_flip_vertically_on_load(false);
 			int width, height, chaCount;
 			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\wood_diff.png", &width, &height, &chaCount, 0);
+			unsigned char* data = stbi_load("Source\\Textures\\brickwall.jpg", &width, &height, &chaCount, 0);
 			if (data)
 			{
 				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
@@ -1094,7 +1098,7 @@ int main()
 			stbi_set_flip_vertically_on_load(false);
 			int width, height, chaCount;
 			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\wood_normal.png", &width, &height, &chaCount, 0);
+			unsigned char* data = stbi_load("Source\\Textures\\brickwall_normal.jpg", &width, &height, &chaCount, 0);
 			if (data)
 			{
 				GLenum format;
@@ -1173,48 +1177,126 @@ int main()
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		//NOTE: HDR FrameBuffer
-		hdrFB.height = 720;
-		hdrFB.width = 1280;
 
-		glGenFramebuffers(1, &hdrFB.id);
-		glCheckError();
-		glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
-		glCheckError();
+		FrameBuffer hdrFB;
+		{
+			const unsigned int ColorBufferCount = 2;
+			const unsigned int DepthBufferCount = 1;
+			hdrFB.colorBuffers = std::make_unique<Buffer2D[]>(ColorBufferCount);
+			hdrFB.depthBuffers = std::make_unique<Buffer2D[]>(DepthBufferCount);
 
-		glGenTextures(1, &hdrFB.texColorBufferID);
-		glCheckError();
-		glBindTexture(GL_TEXTURE_2D, hdrFB.texColorBufferID);
-		glCheckError();
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, hdrFB.width, hdrFB.height, 0, GL_RGBA, GL_FLOAT, NULL);
-		glCheckError();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glCheckError();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glCheckError();
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glCheckError();
+			glGenFramebuffers(1, &hdrFB.id);
+			glCheckError();
+			glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
+			glCheckError();
 
-		glGenRenderbuffers(1, &hdrFB.renderBuffDepthStencilBufferID);
-		glCheckError();
-		glBindRenderbuffer(GL_RENDERBUFFER, hdrFB.renderBuffDepthStencilBufferID);
-		glCheckError();
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, hdrFB.width, hdrFB.height);
-		glCheckError();
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glCheckError();
+			for (unsigned int i = 0; i < ColorBufferCount; ++i)
+			{
+				hdrFB.colorBuffers[i].height = 720;
+				hdrFB.colorBuffers[i].width = 1280;
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hdrFB.texColorBufferID, 0);
-		glCheckError();
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, hdrFB.renderBuffDepthStencilBufferID);
-		glCheckError();
+				glGenTextures(1, &hdrFB.colorBuffers[i].id);
+				glCheckError();
+				glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[i].id);
+				glCheckError();
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, hdrFB.colorBuffers[i].width, hdrFB.colorBuffers[i].height, 0, GL_RGBA, GL_FLOAT, NULL);
+				glCheckError();
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glCheckError();
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glCheckError();
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glCheckError();
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glCheckError();
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glCheckError();
 
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		else
-			std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, hdrFB.colorBuffers[i].id, 0);
+				glCheckError();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glCheckError();
+			}
+
+			hdrFB.depthBuffers[0].width = 1280;
+			hdrFB.depthBuffers[0].height = 720;
+
+			glGenRenderbuffers(1, &hdrFB.depthBuffers[0].id);
+			glCheckError();
+			glBindRenderbuffer(GL_RENDERBUFFER, hdrFB.depthBuffers[0].id);
+			glCheckError();
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, hdrFB.depthBuffers[0].width, hdrFB.depthBuffers[0].height);
+			glCheckError();
+			glBindRenderbuffer(GL_RENDERBUFFER, 0);
+			glCheckError();
+
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, hdrFB.depthBuffers[0].id);
+			glCheckError();
+
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+			else
+				std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
+
+			unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+			glDrawBuffers(2, attachments);
+			glCheckError();
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glCheckError();
+		}
+		
+
+		///////////////////////////////////////////////////////////////////////////////////////////////////
+		//NOTE: Ping Pong buffers!
+		const unsigned int FrameBufferCount = 2;
+		FrameBuffer PingPongBuffers[FrameBufferCount];
+		const unsigned int ColorBufferCount = 1;
+		PingPongBuffers[0].colorBuffers = std::make_unique<Buffer2D[]>(ColorBufferCount);
+		PingPongBuffers[1].colorBuffers = std::make_unique<Buffer2D[]>(ColorBufferCount);
+
+		for (unsigned int i = 0; i < FrameBufferCount; ++i)
+		{
+			glGenFramebuffers(1, &PingPongBuffers[i].id);
+			glCheckError();
+			glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[i].id);
+			glCheckError();
+
+			PingPongBuffers[i].colorBuffers[0].height = 720;
+			PingPongBuffers[i].colorBuffers[0].width = 1280;
+
+			glGenTextures(1, &PingPongBuffers[i].colorBuffers[0].id);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, PingPongBuffers[i].colorBuffers[0].id);
+			glCheckError();
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, PingPongBuffers[i].colorBuffers[0].width, PingPongBuffers[i].colorBuffers[0].height, 0, GL_RGBA, GL_FLOAT, NULL);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glCheckError();
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, PingPongBuffers[i].colorBuffers[0].id, 0);
+			glCheckError();
+
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+			else
+				std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glCheckError();
+
+		}
+
+		
+		
+		///////////////////////////////////////////////////////////////////////////////////////////////////
 
 		std::vector<glm::vec3> lightPositions;
 		lightPositions.push_back(glm::vec3(0.0f, 0.0f, -17.0f)); // back light
@@ -1230,6 +1312,9 @@ int main()
 
 		glm::mat4 originalProjection = camera.getProjectionMatrix();
 
+		bool horizontal = true;
+		unsigned int blurIterations = 10;
+
 		while (!glfwWindowShouldClose(window))
 		{
 			process_input(window);
@@ -1242,10 +1327,10 @@ int main()
 			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
 			glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
-			
+
 			glm::mat4 lightModelMatrix = glm::mat4(1.0f);
 			lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
-			lightModelMatrix = glm::scale(lightModelMatrix, glm::vec3(0.2, 0.2, 0.2));
+			lightModelMatrix = glm::scale(lightModelMatrix, glm::vec3(1.0, 1.0, 1.0));
 
 			glm::mat4 floorModelMatrix = glm::mat4(1.0f);
 			floorModelMatrix = glm::translate(floorModelMatrix, glm::vec3(0.0f, -5.0f, 0.0f));
@@ -1255,8 +1340,8 @@ int main()
 			glm::mat4 roomModelMatrix = glm::mat4(1.0f);
 			roomModelMatrix = glm::translate(roomModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 			roomModelMatrix = glm::scale(roomModelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
-			
-			
+
+
 			glm::mat4 tunnelModelMatrix = glm::mat4(1.0f);
 			tunnelModelMatrix = glm::translate(tunnelModelMatrix, glm::vec3(0.0, 0.0, 0.0));
 			tunnelModelMatrix = glm::scale(tunnelModelMatrix, glm::vec3(2.5f, 2.5f, 20.0f));
@@ -1290,7 +1375,7 @@ int main()
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.1, 0.1, 0.1)));
 			glCheckError();
 
-			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0,1.0,1.0)));
+			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(10.0, 10.0, 10.0)));
 			glCheckError();
 
 			glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
@@ -1305,13 +1390,14 @@ int main()
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			glCheckError();
 
-			/////////////////////////////////////////////////////////////////////////////////////////////////////
-			//Parallax Mapping!!!
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			//1st Pass Render HDR framebuffer color attachments
 			list.shaders[0].use();
 
-			glViewport(0, 0, viewPortWidth, viewPortHeight);
+			//NOTE: Here we are using the first color buffer dimensions only!!
+			glViewport(0, 0, hdrFB.colorBuffers[0].width, hdrFB.colorBuffers[0].height);
 			glCheckError();
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
 			glCheckError();
 			glEnable(GL_DEPTH_TEST);
 			glCheckError();
@@ -1330,8 +1416,7 @@ int main()
 			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
 			list.shaders[0].setFloat("mat.shininess", 32.0f);
 
-			list.shaders[0].setFloat("specularColor", 0.01f);
-			list.shaders[0].setFloat("height_scale", 0.1f);
+			list.shaders[0].setFloat("specularColor", 0.3f);
 
 			list.shaders[0].setInt("mat.texture_diffuse1", 0);
 			glActiveTexture(GL_TEXTURE0);
@@ -1343,12 +1428,6 @@ int main()
 			glActiveTexture(GL_TEXTURE1);
 			glCheckError();
 			glBindTexture(GL_TEXTURE_2D, txNormWall);
-			glCheckError();
-
-			list.shaders[0].setInt("mat.texture_height1", 2);
-			glActiveTexture(GL_TEXTURE2);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, txDispWall);
 			glCheckError();
 
 			list.shaders[0].setMat4("modelMatrix", floorModelMatrix);
@@ -1364,35 +1443,60 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			//2nd Pass Gaussian blur
+			//NOTE: Here you don´t clear color, because you need the data.
+			bool firstIteration = true;
+			list.shaders[3].use();
+			for (unsigned int i = 0; i < blurIterations; ++i)
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[horizontal].id);
+				glCheckError();
 
-			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			//glCheckError();
-			//glEnable(GL_DEPTH_TEST);
-			//glCheckError();
-			//glClearColor(0, 0, 0, 1.0f);
-			//glCheckError();
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			//glCheckError();
-			//
-			////glViewport(0, 0, hdrFB.width, hdrFB.height);
-			//glViewport(0, 0, viewPortWidth, viewPortHeight);
-			//glCheckError();
-			//
-			//list.shaders[0].use();
-			//list.shaders[0].setVec3("viewPos", camera.getCameraPos());
-			//list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
-			//list.shaders[0].setFloat("specularColor", 1.0f);
-			//list.shaders[0].setFloat("mat.shininess", 64.0f);
-			//
-			//list.shaders[0].setInt("mat.texture_diffuse1", 1);
-			//glActiveTexture(GL_TEXTURE1);
-			//glCheckError();
-			//glBindTexture(GL_TEXTURE_2D, txDiffWall);
-			//glCheckError();
-			//
-			//glBindVertexArray(roomVao);
-			//glDrawArrays(GL_TRIANGLES, 0, 30);
-			//glBindVertexArray(0);
+				list.shaders[3].setBool("horizontal", horizontal);
+				list.shaders[3].setInt("image", 0);
+				glActiveTexture(GL_TEXTURE0);
+				glCheckError();
+				glBindTexture(GL_TEXTURE_2D, firstIteration ? hdrFB.colorBuffers[1].id : PingPongBuffers[!horizontal].colorBuffers[0].id);
+				glCheckError();
+				
+				glBindVertexArray(quadVAO);
+				glCheckError();
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				glCheckError();
+				glBindVertexArray(0);
+				glCheckError();
+
+				if (firstIteration) firstIteration = false;
+				horizontal = !horizontal;
+			}
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			//3rd Pass Default FrameBuffer
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glCheckError();
+			glClearColor(0, 0, 0, 1.0f);
+			glCheckError();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glCheckError();
+			
+			glViewport(0, 0, viewPortWidth, viewPortHeight);
+			glCheckError();
+
+			list.shaders[2].use();
+			
+			list.shaders[2].setBool("hdr", hdr);
+			list.shaders[2].setFloat("exposure", exposure);
+			
+			list.shaders[2].setInt("hdrBuffer", 0);
+			glActiveTexture(GL_TEXTURE0);
+			//glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
+			//glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
+			glBindTexture(GL_TEXTURE_2D, PingPongBuffers[1].colorBuffers[0].id);
+			
+			glBindVertexArray(quadVAO);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			glBindVertexArray(0);
 
 			// 
 			//HDR rendering within cube with 3 bright lights!!!
@@ -1450,7 +1554,7 @@ int main()
 			//glBindVertexArray(0);
 
 
-			
+
 
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
 			////Omnidirectional Shadow Mapping

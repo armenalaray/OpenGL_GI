@@ -184,6 +184,8 @@
     <None Include="Floor.frag" />
     <None Include="FrameBufferQuad.frag" />
     <None Include="FrameBufferQuad.vert" />
+    <None Include="GaussianBlur.frag" />
+    <None Include="GaussianBlur.vert" />
     <None Include="GreenCube.frag" />
     <None Include="HDR.frag" />
     <None Include="HDR.vert" />

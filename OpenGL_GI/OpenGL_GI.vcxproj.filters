@@ -229,5 +229,11 @@
     <None Include="HDR.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="GaussianBlur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="GaussianBlur.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

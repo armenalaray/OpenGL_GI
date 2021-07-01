@@ -1,6 +1,7 @@
 #version 330 core
 //layout (depth_greater) out float gl_FragDepth;
-
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 //TODO: Make a preprocessor to have .h files!!!
 struct Material
@@ -68,8 +69,6 @@ uniform float far;
 uniform float specularColor;
 
 uniform float height_scale;
-
-out vec4 FragColor;
 
 vec3 sampleOffsetDirections[20] = vec3[]
 (
@@ -213,7 +212,8 @@ vec3 calcPointLightComp(Point_Light light)
 
 //	vec2 texCoords = ParallaxMapping(tangentViewDir, fsIn.texCoords);
 //	vec2 texCoords = SteepParallaxMapping(tangentViewDir, fsIn.texCoords);
-	vec2 texCoords = ParallaxOcclussionMapping(tangentViewDir, fsIn.texCoords);
+//	vec2 texCoords = ParallaxOcclussionMapping(tangentViewDir, fsIn.texCoords);
+	vec2 texCoords = fsIn.texCoords;
 
 	if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0)
 		discard;
@@ -225,7 +225,7 @@ vec3 calcPointLightComp(Point_Light light)
 
 	vec3 tangentNorm = texture(mat.texture_normal1, texCoords).rgb;
 	//FragColor = vec4(tangentNorm,1.0);
-	tangentNorm = tangentNorm * 2.0f - 1.0f;
+	tangentNorm = normalize(tangentNorm * 2.0f - 1.0f);
 
 	//Diffuse::
 	float diffuse = max(dot(tangentNorm,tangentlightDir), 0);
@@ -245,7 +245,7 @@ vec3 calcPointLightComp(Point_Light light)
 
 	//float shadow = CalcPointShadows(light, fsIn.tangentFragPos);
 	float shadow = 0.0f;
-	vec3 result = attenuation * (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight));
+	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight);
 	return  result;
 }
 
@@ -254,7 +254,14 @@ void main()
 	vec3 res = vec3(0);
 	res += calcPointLightComp(pLight);
 	FragColor = vec4(res,1.0);
-	float gamma = 2.2;
-	FragColor.rgb = pow(FragColor.rgb,vec3(1.0/gamma));
+	float brightness = dot(FragColor.rgb,vec3(0.2126, 0.7152, 0.0722));
+	if(brightness > 1.0)
+	{
+		BrightColor = vec4(FragColor.rgb,1.0);
+	}
+	else
+	{
+		BrightColor = vec4(0.0,0.0,0.0,1.0);
+	}
 	//FragColor = vec4(pLight.clq,1.0);
 }
