@@ -1326,7 +1326,7 @@ int main()
 			//lightRotateModel = glm::rotate(lightRotateModel, 10.0f * glm::radians((float)glfwGetTime()), glm::vec3(0, 1, 0));
 			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
 			/////////////////////////////////////////////////////////////////////////////////////////////////////
-			glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
+			glm::vec3 lightPos = glm::vec3(0.0f, -2.0f, 0.0f);
 
 			glm::mat4 lightModelMatrix = glm::mat4(1.0f);
 			lightModelMatrix = glm::translate(lightModelMatrix, lightPos);
@@ -1375,14 +1375,14 @@ int main()
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(0.1, 0.1, 0.1)));
 			glCheckError();
 
-			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(10.0, 10.0, 10.0)));
+			glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(5.0, 5.0, 5.0)));
 			glCheckError();
 
 			glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
 			glCheckError();
 
-			glm::vec3 clq = glm::vec3(1.0f, 0.027f, 0.0028f);
-			//glm::vec3 clq = glm::vec3(1.0f, 0.35f, 0.44f);
+			//glm::vec3 clq = glm::vec3(1.0f, 0.027f, 0.0028f);
+			glm::vec3 clq = glm::vec3(1.0f, 0.35f, 0.44f);
 
 			glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(clq));
 			glCheckError();
@@ -1485,14 +1485,19 @@ int main()
 
 			list.shaders[2].use();
 			
-			list.shaders[2].setBool("hdr", hdr);
 			list.shaders[2].setFloat("exposure", exposure);
 			
-			list.shaders[2].setInt("hdrBuffer", 0);
+			list.shaders[2].setInt("sceneBuffer", 0);
 			glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
-			//glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
+			glCheckError();
+
+			list.shaders[2].setInt("bloomBuffer", 1);
+			glActiveTexture(GL_TEXTURE1);
+			glCheckError();
 			glBindTexture(GL_TEXTURE_2D, PingPongBuffers[1].colorBuffers[0].id);
+			glCheckError();
 			
 			glBindVertexArray(quadVAO);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
