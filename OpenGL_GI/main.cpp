@@ -267,6 +267,7 @@ int main()
 	// -----------------------------
 
 	glEnable(GL_MULTISAMPLE);
+
 	//glEnable(GL_CULL_FACE);
 	//glCheckError();
 	//glCullFace(GL_BACK);
@@ -1381,8 +1382,8 @@ int main()
 			glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
 			glCheckError();
 
-			//glm::vec3 clq = glm::vec3(1.0f, 0.027f, 0.0028f);
-			glm::vec3 clq = glm::vec3(1.0f, 0.35f, 0.44f);
+			glm::vec3 clq = glm::vec3(1.0f, 0.027f, 0.0028f);
+			//glm::vec3 clq = glm::vec3(1.0f, 0.35f, 0.44f);
 
 			glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::vec4), sizeof(glm::vec4), glm::value_ptr(clq));
 			glCheckError();
@@ -1416,7 +1417,8 @@ int main()
 			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
 			list.shaders[0].setFloat("mat.shininess", 32.0f);
 
-			list.shaders[0].setFloat("specularColor", 0.3f);
+			//list.shaders[0].setFloat("specularColor", 0.3f);
+			list.shaders[0].setFloat("specularColor", 1.0f);
 
 			list.shaders[0].setInt("mat.texture_diffuse1", 0);
 			glActiveTexture(GL_TEXTURE0);
