@@ -1,6 +1,7 @@
 #version 330 core
 //layout (depth_greater) out float gl_FragDepth;
-
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 //TODO: Make a preprocessor to have .h files!!!
 struct Material
@@ -67,7 +68,7 @@ uniform Material mat;
 uniform float far;
 uniform float specularColor;
 
-out vec4 FragColor;
+uniform float height_scale;
 
 vec3 sampleOffsetDirections[20] = vec3[]
 (
@@ -129,7 +130,77 @@ vec3 sampleOffsetDirections[20] = vec3[]
 //	return result;
 //}
 
-//TODO: debug this!!!
+
+vec2 ParallaxMapping(vec3 tangentViewDir, vec2 texCoords)
+{
+	float height = texture(mat.texture_height1, texCoords).r;
+	vec2 p = tangentViewDir.xy * height * height_scale;
+//	vec2 p = tangentViewDir.xy / tangentViewDir.z * height * height_scale;
+	return texCoords - p;
+}
+
+vec2 SteepParallaxMapping(vec3 tangentViewDir, vec2 texCoords)
+{
+	const float minLayerCount = 10;
+	const float maxLayerCount = 100;
+	float t = max(dot(vec3(0.0,0.0,1.0),tangentViewDir),0.0);
+//	float layerCount = mix(maxLayerCount, minLayerCount, t);
+	float layerCount = 50.0f;
+
+	float layerDepth = 1.0f / layerCount;
+	float currentLayerDepth = 0.0f;
+
+	//NOTE: this is arbitrary we control how much we move the whole p with height_scale!!!
+	vec2 p = tangentViewDir.xy * height_scale;
+	vec2 deltaTexCoords = p / layerCount;
+
+	vec2 currentTexCoords = texCoords;
+	float currentDepthMapValue = texture(mat.texture_height1, currentTexCoords).r;
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoords -= deltaTexCoords;
+		currentDepthMapValue = texture(mat.texture_height1, currentTexCoords).r;
+		currentLayerDepth += layerDepth;
+	}
+
+	return currentTexCoords;
+}
+
+vec2 ParallaxOcclussionMapping(vec3 tangentViewDir, vec2 texCoords)
+{
+	const float minLayerCount = 8;
+	const float maxLayerCount = 100;
+	float t = max(dot(vec3(0.0,0.0,1.0),tangentViewDir),0.0);
+	float layerCount = mix(maxLayerCount, minLayerCount, t);
+
+	float layerDepth = 1.0f / layerCount;
+	float currentLayerDepth = 0.0f;
+
+	//NOTE: this is arbitrary we control how much we move the whole p with height_scale!!!
+	vec2 p = tangentViewDir.xy * height_scale;
+	vec2 deltaTexCoords = p / layerCount;
+
+	vec2 currentTexCoords = texCoords;
+	float currentDepthMapValue = texture(mat.texture_height1, currentTexCoords).r;
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoords -= deltaTexCoords;
+		currentDepthMapValue = texture(mat.texture_height1, currentTexCoords).r;
+		currentLayerDepth += layerDepth;
+	}
+	
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+	float prevDepthMapValue = texture(mat.texture_height1, prevTexCoords).r;
+
+	float afterDepth = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = prevDepthMapValue - currentLayerDepth;
+
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0f - weight);
+	
+	return currentTexCoords;
+}
+
 vec3 calcPointLightComp(Point_Light light)
 {
 	vec3 tangentlightDir = vec3(0,0,0);
@@ -137,28 +208,36 @@ vec3 calcPointLightComp(Point_Light light)
 	float  spotLightFallOff = 1.0f;
 
 	tangentlightDir = fsIn.tangentLightPos - fsIn.tangentFragPos;
-	
+	vec3 tangentViewDir = normalize(fsIn.tangentViewPos - fsIn.tangentFragPos);
+
+//	vec2 texCoords = ParallaxMapping(tangentViewDir, fsIn.texCoords);
+//	vec2 texCoords = SteepParallaxMapping(tangentViewDir, fsIn.texCoords);
+//	vec2 texCoords = ParallaxOcclussionMapping(tangentViewDir, fsIn.texCoords);
+	vec2 texCoords = fsIn.texCoords;
+
+	if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0)
+		discard;
+
 	//NOTE: attenuation
 	float d = length(tangentlightDir);
 	attenuation = 1.0/(light.clq.x + d*light.clq.y + d*d*light.clq.z);
 	tangentlightDir = normalize(tangentlightDir);
 
-	vec3 tangentNorm = texture(mat.texture_normal1, fsIn.texCoords).rgb;
+	vec3 tangentNorm = texture(mat.texture_normal1, texCoords).rgb;
 	//FragColor = vec4(tangentNorm,1.0);
-	tangentNorm = tangentNorm * 2.0f - 1.0f;
+	tangentNorm = normalize(tangentNorm * 2.0f - 1.0f);
 
 	//Diffuse::
 	float diffuse = max(dot(tangentNorm,tangentlightDir), 0);
 	
 	//Specular::
-	vec3 tangentviewDir = normalize(fsIn.tangentViewPos - fsIn.tangentFragPos);
-	vec3 tangentHalfDir = normalize(tangentlightDir + tangentviewDir);
+	vec3 tangentHalfDir = normalize(tangentlightDir + tangentViewDir);
 	float specular = pow(max(dot(tangentHalfDir, tangentNorm),0.0), mat.shininess);
 	
 	//NOTE: we skip alpha!!!
-	vec3 diffuseColor = texture(mat.texture_diffuse1, fsIn.texCoords).rgb;
-//	float specularColor = texture(mat.texture_specular1, fsIn.texCoords).r;
-	vec3 emissionColor = texture(mat.emission, fsIn.texCoords).rgb;
+	vec3 diffuseColor = texture(mat.texture_diffuse1, texCoords).rgb;
+//	float specularColor = texture(mat.texture_specular1, texCoords).r;
+	vec3 emissionColor = texture(mat.emission, texCoords).rgb;
 	
 	vec3 specularLight = spotLightFallOff * specularColor * (specular * light.specular);
 	vec3 diffuseLight =  spotLightFallOff * diffuseColor * (diffuse * light.diffuse);
@@ -166,7 +245,7 @@ vec3 calcPointLightComp(Point_Light light)
 
 	//float shadow = CalcPointShadows(light, fsIn.tangentFragPos);
 	float shadow = 0.0f;
-	vec3 result = attenuation * (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight));
+	vec3 result = attenuation * (ambientLight + diffuseLight + specularLight);
 	return  result;
 }
 
@@ -175,7 +254,14 @@ void main()
 	vec3 res = vec3(0);
 	res += calcPointLightComp(pLight);
 	FragColor = vec4(res,1.0);
-	float gamma = 2.2;
-	FragColor.rgb = pow(FragColor.rgb,vec3(1.0/gamma));
-	//FragColor = vec4(vec3(1.0),1.0);
+	float brightness = dot(FragColor.rgb,vec3(0.2126, 0.7152, 0.0722));
+	if(brightness > 1.0)
+	{
+		BrightColor = vec4(FragColor.rgb,1.0);
+	}
+	else
+	{
+		BrightColor = vec4(0.0,0.0,0.0,1.0);
+	}
+	//FragColor = vec4(pLight.clq,1.0);
 }
