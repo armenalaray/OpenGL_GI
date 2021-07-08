@@ -54,6 +54,13 @@ We can use GL_TEXTURE0 + 8 for example.
 define material properties specific to each surface!!!
 */
 
+enum gbuffer_tex_index : unsigned int
+{
+	GBUFFER_TEX_INDEX_POSITON,
+	GBUFFER_TEX_INDEX_NORMAL,
+	GBUFFER_TEX_INDEX_COLORSPEC,
+};
+
 struct Buffer2D
 {
 	unsigned int width;
@@ -304,10 +311,14 @@ int main()
 	//Shader blinnPhongShader("BlinnPhong.vert", "BlinnPhong.frag");
 
 	ShaderList list;
-	list.shaders.push_back(Shader("Parallax.vert", "Parallax.frag"));
-	list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
-	list.shaders.push_back(Shader("HDR.vert", "HDR.frag"));
-	list.shaders.push_back(Shader("GaussianBlur.vert", "GaussianBlur.frag"));
+	list.shaders.push_back(Shader("GBuffer.vert", "GBuffer.frag"));
+	list.shaders.push_back(Shader("DeferredShading.vert", "DeferredShading.frag"));
+
+	//list.shaders.push_back(Shader("Parallax.vert", "Parallax.frag"));
+	//list.shaders.push_back(Shader("DebugLightPos.vert", "DebugLightPos.frag"));
+	//list.shaders.push_back(Shader("HDR.vert", "HDR.frag"));
+	//list.shaders.push_back(Shader("GaussianBlur.vert", "GaussianBlur.frag"));
+	
 	//list.shaders.push_back(Shader("Phong.vert", "Phong.frag"));
 	//list.shaders.push_back(Shader("Lighting.vert", "Lighting.frag"));
 	//list.shaders.push_back(Shader("LightDepth.vert", "LightDepth.frag"));
@@ -323,7 +334,7 @@ int main()
 		//Model bpModel("Source\\Models\\cube\\cube.obj");
 		//Model bpModel("Source\\Models\\\CornellBox\\CornellBox-Empty-RG.obj");
 
-		//Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
+		Model bpModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\backpack\\backpack.obj");
 		//Model planetModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\planet\\planet.obj");
 		//Model rockModel("C:\\Source\\OpenGL_GI\\OpenGL_GI\\Source\\Models\\rock\\rock.obj");
 
@@ -1059,12 +1070,12 @@ int main()
 			stbi_set_flip_vertically_on_load(false);
 			int width, height, chaCount;
 			//TODO: Check how we are receiving the data!!!
-			unsigned char* data = stbi_load("Source\\Textures\\brickwall.jpg", &width, &height, &chaCount, 0);
+			unsigned char* data = stbi_load("Source\\Textures\\crane_diffuse.png", &width, &height, &chaCount, 0);
 			if (data)
 			{
 				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
 				//NOTE: It should be used for diffuse textures only!!! NO specular maps, NO  height maps, etc.!!!
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 				glCheckError();
 				glGenerateMipmap(GL_TEXTURE_2D);
 				glCheckError();
@@ -1080,6 +1091,52 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glCheckError();
 
+		unsigned int txSpecWall;
+		glGenTextures(1, &txSpecWall);
+		glBindTexture(GL_TEXTURE_2D, txSpecWall);
+
+		//set the texture wrapping/filtering options (on the currently bound texture object)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glCheckError();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glCheckError();
+
+		{
+			stbi_set_flip_vertically_on_load(false);
+			int width, height, chaCount;
+			//TODO: Check how we are receiving the data!!!
+			unsigned char* data = stbi_load("Source\\Textures\\crane_specular.png", &width, &height, &chaCount, 0);
+			if (data)
+			{
+				GLenum format;
+				if (chaCount == 1)
+					format = GL_RED;
+				else if (chaCount == 3)
+					format = GL_RGB;
+				else if (chaCount == 4)
+					format = GL_RGBA;
+
+				//NOTE: SRGB 3rth parameter raises x^(1/2.2) to the power of 2.2; giving linear colors for diffuse textures only!!
+				//NOTE: It should be used for diffuse textures only!!! NO specular maps, NO  height maps, etc.!!!
+				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+				glCheckError();
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glCheckError();
+				std::cout << "STB_IMAGE::LOADING_TEXTURE_SUCCESS" << std::endl;
+			}
+			else
+			{
+				std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD TEXTURE" << std::endl;
+			}
+			stbi_image_free(data);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glCheckError();
 
 		unsigned int txNormWall;
 		glGenTextures(1, &txNormWall);
@@ -1179,58 +1236,109 @@ int main()
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		//NOTE: HDR FrameBuffer
 
-		FrameBuffer hdrFB;
+		FrameBuffer gBuffer;
 		{
-			const unsigned int ColorBufferCount = 2;
+			const unsigned int ColorBufferCount = 3;
 			const unsigned int DepthBufferCount = 1;
-			hdrFB.colorBuffers = std::make_unique<Buffer2D[]>(ColorBufferCount);
-			hdrFB.depthBuffers = std::make_unique<Buffer2D[]>(DepthBufferCount);
+			gBuffer.colorBuffers = std::make_unique<Buffer2D[]>(ColorBufferCount);
+			gBuffer.depthBuffers = std::make_unique<Buffer2D[]>(DepthBufferCount);
 
-			glGenFramebuffers(1, &hdrFB.id);
+			glGenFramebuffers(1, &gBuffer.id);
 			glCheckError();
-			glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
+			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer.id);
 			glCheckError();
 
-			for (unsigned int i = 0; i < ColorBufferCount; ++i)
-			{
-				hdrFB.colorBuffers[i].height = 720;
-				hdrFB.colorBuffers[i].width = 1280;
+			//Positions texture
 
-				glGenTextures(1, &hdrFB.colorBuffers[i].id);
-				glCheckError();
-				glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[i].id);
-				glCheckError();
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, hdrFB.colorBuffers[i].width, hdrFB.colorBuffers[i].height, 0, GL_RGBA, GL_FLOAT, NULL);
-				glCheckError();
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glCheckError();
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glCheckError();
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glCheckError();
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glCheckError();
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glCheckError();
+			gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].height = 720;
+			gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].width = 1280;
 
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, hdrFB.colorBuffers[i].id, 0);
-				glCheckError();
-
-			}
-
-			hdrFB.depthBuffers[0].width = 1280;
-			hdrFB.depthBuffers[0].height = 720;
-
-			glGenRenderbuffers(1, &hdrFB.depthBuffers[0].id);
+			glGenTextures(1, &gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].id);
 			glCheckError();
-			glBindRenderbuffer(GL_RENDERBUFFER, hdrFB.depthBuffers[0].id);
+			glBindTexture(GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].id);
 			glCheckError();
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, hdrFB.depthBuffers[0].width, hdrFB.depthBuffers[0].height);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].width, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].height, 0, GL_RGBA, GL_FLOAT, NULL);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glCheckError();
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_POSITON].id, 0);
+			glCheckError();
+
+			//Normals texture
+
+			gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].height = 720;
+			gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].width = 1280;
+
+			glGenTextures(1, &gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].id);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].id);
+			glCheckError();
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].width, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].height, 0, GL_RGBA, GL_FLOAT, NULL);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glCheckError();
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_NORMAL].id, 0);
+			glCheckError();
+
+			//Albedo + spec texture
+
+			gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].height = 720;
+			gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].width = 1280;
+
+			glGenTextures(1, &gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].id);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].id);
+			glCheckError();
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].width, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glCheckError();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glCheckError();
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].id, 0);
+			glCheckError();
+
+
+			//Depth renderbuffer 
+
+			gBuffer.depthBuffers[0].width = 1280;
+			gBuffer.depthBuffers[0].height = 720;
+
+			glGenRenderbuffers(1, &gBuffer.depthBuffers[0].id);
+			glCheckError();
+			glBindRenderbuffer(GL_RENDERBUFFER, gBuffer.depthBuffers[0].id);
+			glCheckError();
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, gBuffer.depthBuffers[0].width, gBuffer.depthBuffers[0].height);
 			glCheckError();
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 			glCheckError();
 
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, hdrFB.depthBuffers[0].id);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gBuffer.depthBuffers[0].id);
 			glCheckError();
 
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -1238,14 +1346,14 @@ int main()
 			else
 				std::cout << "FRAMEBUFFER:: Framebuffer is complete!" << std::endl;
 
-			unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-			glDrawBuffers(2, attachments);
+			unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+			glDrawBuffers(3, attachments);
 			glCheckError();
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glCheckError();
 		}
-		
+
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		//NOTE: Ping Pong buffers!
@@ -1295,8 +1403,8 @@ int main()
 
 		}
 
-		
-		
+
+
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 
 		std::vector<glm::vec3> lightPositions;
@@ -1319,14 +1427,6 @@ int main()
 		while (!glfwWindowShouldClose(window))
 		{
 			process_input(window);
-
-
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-			// Shadow mapping to 2D texture
-			//glm::mat4 lightRotateModel = glm::mat4(1.0f);
-			//lightRotateModel = glm::rotate(lightRotateModel, 10.0f * glm::radians((float)glfwGetTime()), glm::vec3(0, 1, 0));
-			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
-			/////////////////////////////////////////////////////////////////////////////////////////////////////
 			glm::vec3 lightPos = glm::vec3(0.0f, -2.0f, 0.0f);
 
 			glm::mat4 lightModelMatrix = glm::mat4(1.0f);
@@ -1391,14 +1491,13 @@ int main()
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			glCheckError();
 
-			///////////////////////////////////////////////////////////////////////////////////////////////////
 			//1st Pass Render HDR framebuffer color attachments
 			list.shaders[0].use();
-
+			
 			//NOTE: Here we are using the first color buffer dimensions only!!
-			glViewport(0, 0, hdrFB.colorBuffers[0].width, hdrFB.colorBuffers[0].height);
+			glViewport(0, 0, gBuffer.colorBuffers[0].width, gBuffer.colorBuffers[0].height);
 			glCheckError();
-			glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
+			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer.id);
 			glCheckError();
 			glEnable(GL_DEPTH_TEST);
 			glCheckError();
@@ -1407,74 +1506,12 @@ int main()
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCheckError();
 
-			//list.shaders[0].setInt("shadowMap", 0);
-			//glActiveTexture(GL_TEXTURE0);
-			//glCheckError();
-			//glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
-			//glCheckError();
-			//list.shaders[0].setFloat("far", far);
+			list.shaders[0].setMat4("modelMatrix", roomModelMatrix);
 
-			list.shaders[0].setVec3("viewPos", camera.getCameraPos());
-			list.shaders[0].setFloat("mat.shininess", 32.0f);
+			bpModel.Draw(list.shaders[0]);
 
-			//list.shaders[0].setFloat("specularColor", 0.3f);
-			list.shaders[0].setFloat("specularColor", 1.0f);
-
-			list.shaders[0].setInt("mat.texture_diffuse1", 0);
-			glActiveTexture(GL_TEXTURE0);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, txDiffWall);
-			glCheckError();
-
-			list.shaders[0].setInt("mat.texture_normal1", 1);
-			glActiveTexture(GL_TEXTURE1);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, txNormWall);
-			glCheckError();
-
-			list.shaders[0].setMat4("modelMatrix", floorModelMatrix);
-
-			glBindVertexArray(floorVao);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
-
-			list.shaders[1].use();
-			list.shaders[1].setMat4("modelMatrix", lightModelMatrix);
-
-			glBindVertexArray(cubeVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
-
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-			//2nd Pass Gaussian blur
-			//NOTE: Here you don´t clear color, because you need the data.
-			bool firstIteration = true;
-			list.shaders[3].use();
-			for (unsigned int i = 0; i < blurIterations; ++i)
-			{
-				glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[horizontal].id);
-				glCheckError();
-
-				list.shaders[3].setBool("horizontal", horizontal);
-				list.shaders[3].setInt("image", 0);
-				glActiveTexture(GL_TEXTURE0);
-				glCheckError();
-				glBindTexture(GL_TEXTURE_2D, firstIteration ? hdrFB.colorBuffers[1].id : PingPongBuffers[!horizontal].colorBuffers[0].id);
-				glCheckError();
-				
-				glBindVertexArray(quadVAO);
-				glCheckError();
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-				glCheckError();
-				glBindVertexArray(0);
-				glCheckError();
-
-				if (firstIteration) firstIteration = false;
-				horizontal = !horizontal;
-			}
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-			//3rd Pass Default FrameBuffer
-
+			//2nd pass deferred shading
+			
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glCheckError();
 			glClearColor(0, 0, 0, 1.0f);
@@ -1484,26 +1521,142 @@ int main()
 			
 			glViewport(0, 0, viewPortWidth, viewPortHeight);
 			glCheckError();
-
-			list.shaders[2].use();
 			
-			list.shaders[2].setFloat("exposure", exposure);
+			list.shaders[1].use();
 			
-			list.shaders[2].setInt("sceneBuffer", 0);
+			list.shaders[1].setInt("tex", 0);
 			glActiveTexture(GL_TEXTURE0);
 			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
-			glCheckError();
-
-			list.shaders[2].setInt("bloomBuffer", 1);
-			glActiveTexture(GL_TEXTURE1);
-			glCheckError();
-			glBindTexture(GL_TEXTURE_2D, PingPongBuffers[1].colorBuffers[0].id);
+			glBindTexture(GL_TEXTURE_2D, gBuffer.colorBuffers[GBUFFER_TEX_INDEX_COLORSPEC].id);
 			glCheckError();
 			
 			glBindVertexArray(quadVAO);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			glBindVertexArray(0);
+
+
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			// Shadow mapping to 2D texture
+			//glm::mat4 lightRotateModel = glm::mat4(1.0f);
+			//lightRotateModel = glm::rotate(lightRotateModel, 10.0f * glm::radians((float)glfwGetTime()), glm::vec3(0, 1, 0));
+			//lightRotateModel = glm::translate(lightRotateModel, glm::vec3(4.0, 4.0, 4.0));
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			////1st Pass Render HDR framebuffer color attachments
+			//list.shaders[0].use();
+			//
+			////NOTE: Here we are using the first color buffer dimensions only!!
+			//glViewport(0, 0, hdrFB.colorBuffers[0].width, hdrFB.colorBuffers[0].height);
+			//glCheckError();
+			//glBindFramebuffer(GL_FRAMEBUFFER, hdrFB.id);
+			//glCheckError();
+			//glEnable(GL_DEPTH_TEST);
+			//glCheckError();
+			//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			//glCheckError();
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glCheckError();
+			//
+			////list.shaders[0].setInt("shadowMap", 0);
+			////glActiveTexture(GL_TEXTURE0);
+			////glCheckError();
+			////glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
+			////glCheckError();
+			////list.shaders[0].setFloat("far", far);
+			//
+			//list.shaders[0].setVec3("viewPos", camera.getCameraPos());
+			//list.shaders[0].setFloat("mat.shininess", 32.0f);
+			//
+			////list.shaders[0].setFloat("specularColor", 0.3f);
+			//list.shaders[0].setFloat("specularColor", 1.0f);
+			//
+			//list.shaders[0].setInt("mat.texture_diffuse1", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_2D, txDiffWall);
+			//glCheckError();
+			//
+			//list.shaders[0].setInt("mat.texture_normal1", 1);
+			//glActiveTexture(GL_TEXTURE1);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_2D, txNormWall);
+			//glCheckError();
+			//
+			//list.shaders[0].setMat4("modelMatrix", floorModelMatrix);
+			//
+			//glBindVertexArray(floorVao);
+			//glDrawArrays(GL_TRIANGLES, 0, 6);
+			//glBindVertexArray(0);
+			//
+			//list.shaders[1].use();
+			//list.shaders[1].setMat4("modelMatrix", lightModelMatrix);
+			//
+			//glBindVertexArray(cubeVAO);
+			//glDrawArrays(GL_TRIANGLES, 0, 36);
+			//glBindVertexArray(0);
+			//
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			////2nd Pass Gaussian blur
+			////NOTE: Here you don´t clear color, because you need the data.
+			//bool firstIteration = true;
+			//list.shaders[3].use();
+			//for (unsigned int i = 0; i < blurIterations; ++i)
+			//{
+			//	glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[horizontal].id);
+			//	glCheckError();
+			//
+			//	list.shaders[3].setBool("horizontal", horizontal);
+			//	list.shaders[3].setInt("image", 0);
+			//	glActiveTexture(GL_TEXTURE0);
+			//	glCheckError();
+			//	glBindTexture(GL_TEXTURE_2D, firstIteration ? hdrFB.colorBuffers[1].id : PingPongBuffers[!horizontal].colorBuffers[0].id);
+			//	glCheckError();
+			//
+			//	glBindVertexArray(quadVAO);
+			//	glCheckError();
+			//	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			//	glCheckError();
+			//	glBindVertexArray(0);
+			//	glCheckError();
+			//
+			//	if (firstIteration) firstIteration = false;
+			//	horizontal = !horizontal;
+			//}
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			////3rd Pass Default FrameBuffer
+			//
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//glCheckError();
+			//glClearColor(0, 0, 0, 1.0f);
+			//glCheckError();
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glCheckError();
+			//
+			//glViewport(0, 0, viewPortWidth, viewPortHeight);
+			//glCheckError();
+			//
+			//list.shaders[2].use();
+			//
+			//list.shaders[2].setFloat("exposure", exposure);
+			//
+			//list.shaders[2].setInt("sceneBuffer", 0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_2D, hdrFB.colorBuffers[0].id);
+			//glCheckError();
+			//
+			//list.shaders[2].setInt("bloomBuffer", 1);
+			//glActiveTexture(GL_TEXTURE1);
+			//glCheckError();
+			//glBindTexture(GL_TEXTURE_2D, PingPongBuffers[1].colorBuffers[0].id);
+			//glCheckError();
+			//
+			//glBindVertexArray(quadVAO);
+			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			//glBindVertexArray(0);
+
+			///////////////////////////////////////////////////////////////////////////////////////////////////
 
 			// 
 			//HDR rendering within cube with 3 bright lights!!!

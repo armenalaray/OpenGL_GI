@@ -173,6 +173,8 @@
     <None Include="CubeDepthMap.vert" />
     <None Include="CubeMap.frag" />
     <None Include="CubeMap.vert" />
+    <None Include="DeferredShading.frag" />
+    <None Include="DeferredShading.vert" />
     <None Include="DepthBufferQuad.frag" />
     <None Include="DepthBufferQuad.vert" />
     <None Include="DisplayNormal.frag" />
@@ -186,6 +188,8 @@
     <None Include="FrameBufferQuad.vert" />
     <None Include="GaussianBlur.frag" />
     <None Include="GaussianBlur.vert" />
+    <None Include="GBuffer.frag" />
+    <None Include="GBuffer.vert" />
     <None Include="GreenCube.frag" />
     <None Include="HDR.frag" />
     <None Include="HDR.vert" />

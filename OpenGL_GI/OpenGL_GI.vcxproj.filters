@@ -235,5 +235,17 @@
     <None Include="GaussianBlur.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="GBuffer.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="GBuffer.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DeferredShading.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DeferredShading.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
